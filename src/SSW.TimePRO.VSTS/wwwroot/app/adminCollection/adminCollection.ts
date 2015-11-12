@@ -28,7 +28,7 @@
         }
 
         getApiUri(relativeUri) {
-            return "https://" + this.loginForm.accountName + ".sswtimepro.com/api/";
+            return "https://" + this.loginForm.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
         }
     }
 

@@ -4,7 +4,7 @@
   "version": "0.1.1",
   "name": "SSW TimePRO",
   "description": "Adds timesheets to your visual studio account.",
-  "baseUri": "https://localhost:44300",
+  "baseUri": "https://localhost:44301",
   "publisher": "bencull",
   "scopes": [ "vso.work", "vso.work_write" ],
   "contributions": [
