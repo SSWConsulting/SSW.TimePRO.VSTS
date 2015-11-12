@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{FBD4ADA8-C7C1-4F5A-BF55-F5129B24327B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4A7C5CB7-4504-49B6-B38F-3F944E1D5DF7}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+		NuGet.Config = NuGet.Config
+	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SSW.TimePRO.VSTS", "src\SSW.TimePRO.VSTS\SSW.TimePRO.VSTS.xproj", "{CEE9E5FE-D51F-43CC-B459-B55E6A339D3E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CEE9E5FE-D51F-43CC-B459-B55E6A339D3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEE9E5FE-D51F-43CC-B459-B55E6A339D3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEE9E5FE-D51F-43CC-B459-B55E6A339D3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEE9E5FE-D51F-43CC-B459-B55E6A339D3E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CEE9E5FE-D51F-43CC-B459-B55E6A339D3E} = {FBD4ADA8-C7C1-4F5A-BF55-F5129B24327B}
+	EndGlobalSection
+EndGlobal

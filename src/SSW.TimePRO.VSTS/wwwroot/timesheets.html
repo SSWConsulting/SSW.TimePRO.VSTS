@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Hello Visual Studio Team Services!</title>
+    <script src="sdk/scripts/VSS.SDK.js"></script>
+</head>
+<body>
+    <h1>Hello Timesheets!</h1>
+<div id="grid-container"></div>
+
+    <iframe src="https://sswtimepro.com" height="100%" width="100%"></iframe>
+<script type="text/javascript">
+    // Sets up the initial handshake with the host frame
+    VSS.init({
+        // Our extension will explicitly notify the host when we're done loading
+        explicitNotifyLoaded: true,
+
+        // We are using some VSO APIs, so we will need the module loader to load them in
+        usePlatformScripts: true,
+        usePlatformStyles: true
+    });
+
+    // Load VSO controls
+    VSS.require(["VSS/Controls", "VSS/Controls/Grids"],
+        function (Controls, Grids) {
+
+            // Initialize the grid control with two colums, "key" and "value"
+            var dataSource = [];
+            dataSource.push({ key: "key", value: "value" });
+
+            Controls.create(Grids.Grid, $("#grid-container"), {
+                height: "1000px", // Explicit height is required for a Grid control
+                columns: [
+                    // text is the column header text. 
+                    // index is the key into the source object to find the data for this column
+                    // width is the width of the column, in pixels
+                    { text: "Property key", index: "key", width: 150 },
+                    { text: "Property value", index: "value", width: 600 }
+                ],
+                // This data source is rendered into the Grid columns defined above
+                source: dataSource
+            });
+            VSS.notifyLoadSucceeded();
+        });
+</script>
+</body>
+</html>

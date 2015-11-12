@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Hello Visual Studio Team Services!</title>
+    <script src="sdk/scripts/VSS.SDK.js"></script>
+
+    <!-- bower:css -->
+    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.css" />
+    <!-- endbower -->
+</head>
+<body ng-app="app" ng-controller="AdminCollectionController as vm">
+    <div class="container-fluid">
+        <h1>Collection Admin</h1>
+
+        <p>To access all the great features of this extension, please login to TimePRO below.</p>
+        <div class="row">
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <div class="form-group">
+                    <label>Account Name</label>
+                    <div class="input-group">
+                        <input type="text" ng-model="vm.loginForm.accountName" class="form-control text-right" />
+                        <span class="input-group-addon">.sswtimepro.com</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" ng-model="vm.loginForm.username" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label>Passwrod</label>
+                    <input type="password" ng-model="vm.loginForm.password" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary btn-block" ng-click="vm.login()">Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="text/javascript">
+    // Sets up the initial handshake with the host frame
+    VSS.init({
+        // Our extension will explicitly notify the host when we're done loading
+        explicitNotifyLoaded: true,
+
+        // We are using some VSO APIs, so we will need the module loader to load them in
+        usePlatformScripts: true,
+        usePlatformStyles: true
+    });
+
+    VSS.notifyLoadSucceeded();
+</script>
+
+    <!-- bower:js -->
+    <script src="lib/angular/angular.js"></script>
+    <script src="lib/jquery/dist/jquery.js"></script>
+    <script src="lib/bootstrap/dist/js/bootstrap.js"></script>
+    <!-- endbower -->
+
+    <script src="app/app.js"></script>
+    <script src="app/adminCollection/adminCollection.js"></script>
+</body>
+</html>
