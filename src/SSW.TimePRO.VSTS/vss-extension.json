@@ -1,7 +1,7 @@
 ﻿{
   "manifestVersion": 1,
   "id": "sswtimepro",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "name": "SSW TimePRO",
   "description": "Adds timesheets to your visual studio account.",
   "baseUri": "https://localhost:44301",
@@ -30,7 +30,7 @@
       "properties": {
         "name": "Timesheets",
         "order": 100,
-        "uri": "timesheets.html"
+        "uri": "app/timesheetHub/timesheetHub.html"
       }
     },
     {
@@ -93,7 +93,7 @@
       "properties": {
         "name": "SSW TimePRO",
         "order": 30,
-        "uri": "adminCollection.html"
+        "uri": "app/adminCollection/adminCollection.html"
       }
     }
   ]

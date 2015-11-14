@@ -1,16 +1,16 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Hello Visual Studio Team Services!</title>
-    <script src="sdk/scripts/VSS.SDK.js"></script>
+    <title>SSW TimePRO Admin</title>
+    <script src="/sdk/scripts/VSS.SDK.js"></script>
 
-    <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.css" />
-    <link rel="stylesheet" href="lib/ladda/dist/ladda-themeless.min.css" />
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="/lib/ladda/dist/ladda-themeless.min.css" />
 </head>
 <body ng-app="app" ng-controller="AdminCollectionController as vm">
 <div class="container-fluid">
-    <h1>Collection Admin</h1>
+    <h1>SSW TimePRO Admin</h1>
 
     <div class="row" ng-if="vm.loading.page">
         <div class="col-sm-6 col-md-4 col-lg-3">
@@ -39,7 +39,7 @@
                         <input type="text" ng-model="vm.loginForm.username" class="form-control"/>
                     </div>
                     <div class="form-group">
-                        <label>Passwrod</label>
+                        <label>Password</label>
                         <input type="password" ng-model="vm.loginForm.password" class="form-control"/>
                     </div>
                     <div class="form-group">
@@ -66,15 +66,16 @@
 
 
         <!-- bower:js -->
-        <script src="lib/angular/angular.js"></script>
-        <script src="lib/jquery/dist/jquery.js"></script>
-        <script src="lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="lib/spin.js/spin.js"></script>
-        <script src="lib/ladda/dist/ladda.min.js"></script>
+        <script src="/lib/angular/angular.js"></script>
+        <script src="/lib/jquery/dist/jquery.js"></script>
+        <script src="/lib/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="/lib/spin.js/spin.js"></script>
+        <script src="/lib/ladda/dist/ladda.min.js"></script>
         <!-- endbower -->
-        <script src="lib/ladda/dist/ladda.jquery.min.js"></script>
+        <script src="/lib/ladda/dist/ladda.jquery.min.js"></script>
 
-        <script src="app/app.js"></script>
-        <script src="app/adminCollection/adminCollection.js"></script>
+        <script src="/app/app.js"></script>
+        <script src="/app/adminCollection/adminCollection.js"></script>
+        <script src="/app/timesheetHub/timesheetHub.js"></script>
 </body>
 </html>

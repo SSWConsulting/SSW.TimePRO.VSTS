@@ -1,16 +1,10 @@
-/// <reference path="../../sdk/scripts/vss.d.ts" />
-var AdminCollection;
-(function (AdminCollection) {
-    var AdminCollectionController = (function () {
-        function AdminCollectionController($http, $scope) {
+var TimesheetHub;
+(function (TimesheetHub) {
+    var TimesheetHubController = (function () {
+        function TimesheetHubController($http, $scope) {
             var _this = this;
             this.$http = $http;
             this.$scope = $scope;
-            this.loginForm = {};
-            this.loading = {
-                page: true
-            };
-            this.error = {};
             VSS.init({
                 usePlatformScripts: true
             });
@@ -26,24 +20,35 @@ var AdminCollection;
                 });
             });
         }
-        Object.defineProperty(AdminCollectionController, "API_KEY", {
+        Object.defineProperty(TimesheetHubController, "API_KEY", {
             get: function () { return "TimePROApiKey"; },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(AdminCollectionController, "ACCOUNT_NAME", {
+        Object.defineProperty(TimesheetHubController, "ACCOUNT_NAME", {
             get: function () { return "TimePROAccountName"; },
             enumerable: true,
             configurable: true
         });
-        AdminCollectionController.prototype.init = function () {
+        Object.defineProperty(TimesheetHubController, "CURRENT_USER_ID", {
+            get: function () { return "TimePROCurrentUserId"; },
+            enumerable: true,
+            configurable: true
+        });
+        TimesheetHubController.prototype.init = function () {
             var _this = this;
             this.$scope.$apply(function () {
                 _this.loading.page = true;
             });
-            this.extensionData.getValue(AdminCollectionController.API_KEY).then(function (value) {
+            Q.all([
+                this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID),
+                this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME)
+            ])
+                .spread(function (userId, accountName) {
                 _this.$scope.$apply(function () {
-                    if (value) {
+                    _this.currentUserId = userId;
+                    _this.accountName = accountName;
+                    if (userId && accountName) {
                         _this.loggedIn = true;
                     }
                     else {
@@ -53,7 +58,7 @@ var AdminCollection;
                 });
             });
         };
-        AdminCollectionController.prototype.login = function () {
+        TimesheetHubController.prototype.login = function () {
             var _this = this;
             this.loading.login = true;
             this.error.login = false;
@@ -61,8 +66,7 @@ var AdminCollection;
                 .success(function (data) {
                 console.log("Success");
                 console.log(data);
-                _this.extensionData.setValue(AdminCollectionController.API_KEY, data.CurrentKey);
-                _this.extensionData.setValue(AdminCollectionController.ACCOUNT_NAME, data.timeProUrlID);
+                _this.extensionData.setValue(TimesheetHubController.CURRENT_USER_ID, data.EmpID);
                 _this.loading.login = false;
                 _this.loggedIn = true;
             })
@@ -73,22 +77,12 @@ var AdminCollection;
                 _this.error.login = true;
             });
         };
-        AdminCollectionController.prototype.getApiUri = function (relativeUri) {
-            return "https://" + this.loginForm.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
+        TimesheetHubController.prototype.getApiUri = function (relativeUri) {
+            return "https://" + this.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
         };
-        AdminCollectionController.prototype.disconnect = function () {
-            var _this = this;
-            this.loading.disconnect = true;
-            this.extensionData.setValue(AdminCollectionController.API_KEY, null).then(function () {
-                _this.$scope.$apply(function () {
-                    _this.loading.disconnect = false;
-                });
-                _this.init(); // Init assumes no scope
-            });
-        };
-        AdminCollectionController.$inject = ['$http', '$scope'];
-        return AdminCollectionController;
+        TimesheetHubController.$inject = ['$http', '$scope'];
+        return TimesheetHubController;
     })();
-    angular.module('adminCollection', [])
-        .controller('AdminCollectionController', AdminCollectionController);
-})(AdminCollection || (AdminCollection = {}));
+    angular.module('TimesheetHub', [])
+        .controller('TimesheetHubController', TimesheetHubController);
+})(TimesheetHub || (TimesheetHub = {}));

@@ -1,8 +1,6 @@
-﻿/// <reference path="../../sdk/scripts/vss.d.ts" />
-module AdminCollection {
+﻿module TimesheetHub {
 
     interface ILoginForm {
-        accountName: string;
         username: string;
         password: string;
     }
@@ -26,23 +24,22 @@ module AdminCollection {
         login: boolean;
     }
 
-    class AdminCollectionController {
+    class TimesheetHubController {
         public static get API_KEY(): string { return "TimePROApiKey"; }
         public static get ACCOUNT_NAME(): string { return "TimePROAccountName"; }
+        public static get CURRENT_USER_ID(): string { return "TimePROCurrentUserId"; }
+
+        private accountName: string;
         private loginForm: ILoginForm;
-        private extensionData: IExtensionDataService;
         private loggedIn: boolean;
         private loading: ILoading;
         private error: IError;
+        private currentUserId: string;
+
+        private extensionData: IExtensionDataService;
 
         static $inject = ['$http', '$scope'];
         constructor(private $http: angular.IHttpService, private $scope: angular.IScope) {
-            this.loginForm = <ILoginForm>{};
-            this.loading = <ILoading>{
-                page: true
-            };
-            this.error = <IError>{};
-
             VSS.init({
                 usePlatformScripts: true
             });
@@ -65,17 +62,25 @@ module AdminCollection {
             this.$scope.$apply(() => {
                 this.loading.page = true;
             });
-            this.extensionData.getValue(AdminCollectionController.API_KEY).then((value) => {
-                this.$scope.$apply(() => {
-                    if (value) {
-                        this.loggedIn = true;
-                    } else {
-                        this.loggedIn = false;
-                    }
+            Q.all([
+                    this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID),
+                    this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME)
+                ])
+                .spread((userId, accountName) => {
 
-                    this.loading.page = false;
+                    this.$scope.$apply(() => {
+                        this.currentUserId = userId;
+                        this.accountName = accountName;
+
+                        if (userId && accountName) {
+                            this.loggedIn = true;
+                        } else {
+                            this.loggedIn = false;
+                        }
+
+                        this.loading.page = false;
+                    });
                 });
-            });
         }
 
         login() {
@@ -87,8 +92,7 @@ module AdminCollection {
                     console.log("Success");
                     console.log(data);
 
-                    this.extensionData.setValue(AdminCollectionController.API_KEY, data.CurrentKey);
-                    this.extensionData.setValue(AdminCollectionController.ACCOUNT_NAME, data.timeProUrlID);
+                    this.extensionData.setValue(TimesheetHubController.CURRENT_USER_ID, data.EmpID);
                     this.loading.login = false;
                     this.loggedIn = true;
                 })
@@ -101,21 +105,10 @@ module AdminCollection {
         }
 
         getApiUri(relativeUri) {
-            return "https://" + this.loginForm.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
-        }
-
-        disconnect() {
-            this.loading.disconnect = true;
-            this.extensionData.setValue(AdminCollectionController.API_KEY, null).then(() => {
-                this.$scope.$apply(() => {
-                    this.loading.disconnect = false;
-                });
-
-                this.init(); // Init assumes no scope
-            });
+            return "https://" + this.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
         }
     }
 
-    angular.module('adminCollection', [])
-        .controller('AdminCollectionController', AdminCollectionController);
+    angular.module('TimesheetHub', [])
+        .controller('TimesheetHubController', TimesheetHubController);
 }
