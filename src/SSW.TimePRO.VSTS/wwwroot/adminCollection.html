@@ -5,60 +5,76 @@
     <title>Hello Visual Studio Team Services!</title>
     <script src="sdk/scripts/VSS.SDK.js"></script>
 
-    <!-- bower:css -->
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.css" />
-    <!-- endbower -->
+    <link rel="stylesheet" href="lib/ladda/dist/ladda-themeless.min.css" />
 </head>
 <body ng-app="app" ng-controller="AdminCollectionController as vm">
-    <div class="container-fluid">
-        <h1>Collection Admin</h1>
+<div class="container-fluid">
+    <h1>Collection Admin</h1>
 
-        <p>To access all the great features of this extension, please login to TimePRO below.</p>
-        <div class="row">
-            <div class="col-sm-6 col-md-4 col-lg-3">
-                <div class="form-group">
-                    <label>Account Name</label>
-                    <div class="input-group">
-                        <input type="text" ng-model="vm.loginForm.accountName" class="form-control text-right" />
-                        <span class="input-group-addon">.sswtimepro.com</span>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" ng-model="vm.loginForm.username" class="form-control" />
-                </div>
-                <div class="form-group">
-                    <label>Passwrod</label>
-                    <input type="password" ng-model="vm.loginForm.password" class="form-control" />
-                </div>
-                <div class="form-group">
-                    <button type="button" class="btn btn-primary btn-block" ng-click="vm.login()">Login</button>
+    <div class="row" ng-if="vm.loading.page">
+        <div class="col-sm-6 col-md-4 col-lg-3">
+            <label>Checking if you're logged in...</label>
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                    <span class="sr-only">100% Complete</span>
                 </div>
             </div>
         </div>
     </div>
+    <div ng-if="!vm.loading.page">
+        <div ng-if="!vm.loggedIn" ng-cloak>
+            <p>To access all the great features of this extension, please login to TimePRO below.</p>
+            <div class="row">
+                <div class="col-sm-6 col-md-4 col-lg-3">
+                    <div class="form-group">
+                        <label>Account Name</label>
+                        <div class="input-group">
+                            <input type="text" ng-model="vm.loginForm.accountName" class="form-control text-right"/>
+                            <span class="input-group-addon">.sswtimepro.com</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" ng-model="vm.loginForm.username" class="form-control"/>
+                    </div>
+                    <div class="form-group">
+                        <label>Passwrod</label>
+                        <input type="password" ng-model="vm.loginForm.password" class="form-control"/>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary btn-block" ng-click="vm.login()" loading-button="vm.loading.login">Login</button>
+                    </div>
+                    <p class="alert alert-danger" ng-if="vm.error.login">
+                        Login failed. Please check your settings and try again.
+                    </p>
+                </div>
+            </div>
+        </div>
 
-<script type="text/javascript">
-    // Sets up the initial handshake with the host frame
-    VSS.init({
-        // Our extension will explicitly notify the host when we're done loading
-        explicitNotifyLoaded: true,
+        <div class="row" ng-if="vm.loggedIn" ng-cloak>
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <label>Currently Logged In As:</label>
+                <p>
+                    <strong>ssw</strong>.sswtimepro.com
+                </p>
+                <button type="button" class="btn btn-danger" ng-click="vm.disconnect()" loading-button="vm.loading.disconnect">Disconnect</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // We are using some VSO APIs, so we will need the module loader to load them in
-        usePlatformScripts: true,
-        usePlatformStyles: true
-    });
 
-    VSS.notifyLoadSucceeded();
-</script>
+        <!-- bower:js -->
+        <script src="lib/angular/angular.js"></script>
+        <script src="lib/jquery/dist/jquery.js"></script>
+        <script src="lib/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="lib/spin.js/spin.js"></script>
+        <script src="lib/ladda/dist/ladda.min.js"></script>
+        <!-- endbower -->
+        <script src="lib/ladda/dist/ladda.jquery.min.js"></script>
 
-    <!-- bower:js -->
-    <script src="lib/angular/angular.js"></script>
-    <script src="lib/jquery/dist/jquery.js"></script>
-    <script src="lib/bootstrap/dist/js/bootstrap.js"></script>
-    <!-- endbower -->
-
-    <script src="app/app.js"></script>
-    <script src="app/adminCollection/adminCollection.js"></script>
+        <script src="app/app.js"></script>
+        <script src="app/adminCollection/adminCollection.js"></script>
 </body>
 </html>

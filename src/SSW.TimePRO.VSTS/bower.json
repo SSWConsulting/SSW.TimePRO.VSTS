@@ -3,6 +3,7 @@
 	"private": true,
   "dependencies": {
     "angular": "1.4.7",
-    "bootstrap": "3.3.2"
+    "bootstrap": "3.3.2",
+    "ladda": "0.9.8"
   }
 }
