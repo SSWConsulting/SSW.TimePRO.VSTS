@@ -49,9 +49,19 @@
                 <div class="col-sm-6 col-md-4 col-lg-3">
                     <label>Currently Logged In As:</label>
                     <p>
-                        <strong>ssw</strong>.sswtimepro.com
+                        <strong>{{vm.currentUserId}}</strong>
                     </p>
                     <button type="button" class="btn btn-danger" ng-click="vm.disconnect()" loading-button="vm.loading.disconnect">Disconnect</button>
+                    <div class="form-group">
+                        Setup
+                        <label>Client</label>
+                        <label>Project</label>
+                        <label>Rate</label>
+                    </div>
+                    <div>
+                        <label>Date: Sun, 15th November 2015</label>
+                        <label>Hours</label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -68,7 +78,8 @@
     <script src="/lib/ladda/dist/ladda.jquery.min.js"></script>
 
     <script src="/app/app.js"></script>
-    <script src="/app/timesheetHub/timesheetHub.js"></script>
+<script src="/app/timesheetHub/timesheetHub.js"></script>
+    <script src="/app/projectSettingsHub/projectSettingsHub.js"></script>
     <script src="/app/adminCollection/adminCollection.js"></script>
 </body>
 </html>

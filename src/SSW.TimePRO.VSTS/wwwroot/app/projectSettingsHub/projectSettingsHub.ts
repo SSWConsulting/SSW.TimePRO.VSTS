@@ -1,8 +1,7 @@
-﻿module TimesheetHub {
+﻿module ProjectSettingsHub {
 
-    interface ILoginForm {
-        username: string;
-        password: string;
+    interface ISettingsForm {
+        projectId: string;
     }
 
     interface IAuthorizationResponse {
@@ -16,37 +15,42 @@
 
     interface ILoading {
         page: boolean;
-        login: boolean;
-        disconnect: boolean;
+        save: boolean;
     }
 
     interface IError {
-        login: boolean;
+        save: boolean;
     }
 
-    class TimesheetHubController {
+    interface ISuccess {
+        save: boolean;
+    }
+
+    class ProjectSettingsHubController {
         public static get API_KEY(): string { return "TimePROApiKey"; }
         public static get ACCOUNT_NAME(): string { return "TimePROAccountName"; }
         public static get CURRENT_USER_ID(): string { return "TimePROCurrentUserId"; }
 
         private accountName: string;
-        private loginForm: ILoginForm;
+        private settingsForm: ISettingsForm;
         private loggedIn: boolean;
         private loading: ILoading;
         private error: IError;
-        private currentUserId: string;
+        private success: ISuccess;
+        private apiKey: string;
 
+        private webContext: WebContext;
         private extensionData: IExtensionDataService;
         private Q: any;
-        private tfvcRestClient: any;
 
-        static $inject = ['$http', '$scope'];
-        constructor(private $http: angular.IHttpService, private $scope: angular.IScope) {
-            this.loginForm = <ILoginForm>{};
+        static $inject = ['$http', '$scope', 'Base64'];
+        constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private Base64: any) {
+            this.settingsForm = <ISettingsForm>{};
             this.loading = <ILoading>{
                 page: true
             };
             this.error = <IError>{};
+            this.success = <ISuccess>{};
 
             VSS.init({
                 usePlatformScripts: true
@@ -54,9 +58,8 @@
 
             // Wait for the SDK to be initialized
             VSS.ready(() => {
-                require(["q", "TFS/VersionControl/TfvcRestClient"], (Q, TfvcRestClient) => {
+                require(["q"], (Q) => {
                     this.Q = Q;
-                    this.tfvcRestClient = TfvcRestClient.getClient();                        
                     this.Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
                         .spread((dataService: IExtensionDataService) => {
                             this.extensionData = dataService;
@@ -71,24 +74,30 @@
         init() {
             this.$scope.$apply(() => {
                 this.loading.page = true;
+                this.webContext = VSS.getWebContext();
             });
             this.Q.all([
-                    this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID),
-                    this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME)
-                ])
-                .spread((userId, accountName) => {
+                this.extensionData.getValue(ProjectSettingsHubController.API_KEY),
+                this.extensionData.getValue(ProjectSettingsHubController.ACCOUNT_NAME),
+                this.extensionData.getValue("ProjectID-" + this.webContext.project.id)
+            ])
+                .spread((apiKey, accountName, projectId) => {
 
                     this.$scope.$apply(() => {
-                        this.currentUserId = userId;
+                        this.apiKey = apiKey;
                         this.accountName = accountName;
+                        this.settingsForm.projectId = projectId;
 
-                        if (userId && accountName) {
+                        if (apiKey && accountName) {
                             this.loggedIn = true;
                         } else {
                             this.loggedIn = false;
                         }
 
                         this.loading.page = false;
+
+                        var authdata = this.Base64.encode(this.apiKey + ':');
+                        this.$http.defaults.headers.common['Authorization'] = 'Basic ' + authdata;
                     });
                 }, (error) => {
                     console.log("Error loading VSTS data");
@@ -96,24 +105,25 @@
                 });
         }
 
-        login() {
-            this.loading.login = true;
-            this.error.login = false;
+        save() {
+            this.loading.save = true;
+            this.error.save = false;
+            this.success.save = false;
 
-            this.$http.get(this.getApiUri("Authorization?email=" + this.loginForm.username + "&password=" + this.loginForm.password))
-                .success((data: IAuthorizationResponse) => {
+            this.$http.get(this.getApiUri("Projects/" + this.settingsForm.projectId))
+                .success((data) => {
                     console.log("Success");
                     console.log(data);
 
-                    this.extensionData.setValue(TimesheetHubController.CURRENT_USER_ID, data.EmpID);
-                    this.loading.login = false;
-                    this.loggedIn = true;
+                    this.extensionData.setValue("ProjectID-" + this.webContext.project.id, this.settingsForm.projectId);
+                    this.loading.save = false;
+                    this.success.save = true;
                 })
                 .error((error) => {
                     console.log("Error");
                     console.log(error);
-                    this.loading.login = false;
-                    this.error.login = true;
+                    this.loading.save = false;
+                    this.error.save = true;
                 });
         }
 
@@ -122,6 +132,6 @@
         }
     }
 
-    angular.module('TimesheetHub', [])
-        .controller('TimesheetHubController', TimesheetHubController);
+    angular.module('ProjectSettingsHub', [])
+        .controller('ProjectSettingsHubController', ProjectSettingsHubController);
 }

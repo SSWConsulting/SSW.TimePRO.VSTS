@@ -5,13 +5,20 @@ var TimesheetHub;
             var _this = this;
             this.$http = $http;
             this.$scope = $scope;
+            this.loginForm = {};
+            this.loading = {
+                page: true
+            };
+            this.error = {};
             VSS.init({
                 usePlatformScripts: true
             });
             // Wait for the SDK to be initialized
             VSS.ready(function () {
-                require(["q"], function (Q) {
-                    Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
+                require(["q", "TFS/VersionControl/TfvcRestClient"], function (Q, TfvcRestClient) {
+                    _this.Q = Q;
+                    _this.tfvcRestClient = TfvcRestClient.getClient();
+                    _this.Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
                         .spread(function (dataService) {
                         _this.extensionData = dataService;
                         VSS.notifyLoadSucceeded();
@@ -40,7 +47,7 @@ var TimesheetHub;
             this.$scope.$apply(function () {
                 _this.loading.page = true;
             });
-            Q.all([
+            this.Q.all([
                 this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID),
                 this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME)
             ])
@@ -56,6 +63,9 @@ var TimesheetHub;
                     }
                     _this.loading.page = false;
                 });
+            }, function (error) {
+                console.log("Error loading VSTS data");
+                console.log(error);
             });
         };
         TimesheetHubController.prototype.login = function () {
