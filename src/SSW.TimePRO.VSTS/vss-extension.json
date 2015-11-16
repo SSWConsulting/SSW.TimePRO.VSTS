@@ -1,12 +1,12 @@
 ﻿{
   "manifestVersion": 1,
   "id": "sswtimepro",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "name": "SSW TimePRO",
   "description": "Adds timesheets to your visual studio account.",
   "baseUri": "https://localhost:44301",
   "publisher": "bencull",
-  "scopes": [ "vso.work", "vso.work_write" ],
+  "scopes": ["vso.profile", "vso.code", "vso.work_write"],
   "contributions": [
     {
       "id": "ssw-timepro-hub-group",

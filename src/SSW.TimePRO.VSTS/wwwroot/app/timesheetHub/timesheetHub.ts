@@ -35,10 +35,16 @@
         private loading: ILoading;
         private error: IError;
         private currentUserId: string;
+        private projectId: string;
+        private timesheetDate: string;
 
+        private webContext: WebContext;
         private extensionData: IExtensionDataService;
         private Q: any;
         private tfvcRestClient: any;
+        private gitRestClient: any;
+
+        private allCheckins: any[];
 
         static $inject = ['$http', '$scope'];
         constructor(private $http: angular.IHttpService, private $scope: angular.IScope) {
@@ -48,15 +54,28 @@
             };
             this.error = <IError>{};
 
+            this.allCheckins = [
+                {
+                    title: "One"
+                },
+                {
+                    title: "Two"
+                },
+                {
+                    title: "Three"
+                }
+            ];
+
             VSS.init({
                 usePlatformScripts: true
             });
 
             // Wait for the SDK to be initialized
             VSS.ready(() => {
-                require(["q", "TFS/VersionControl/TfvcRestClient"], (Q, TfvcRestClient) => {
+                require(["q", "TFS/VersionControl/TfvcRestClient", "TFS/VersionControl/GitRestClient"], (Q, TfvcRestClient, GitRestClient) => {
                     this.Q = Q;
-                    this.tfvcRestClient = TfvcRestClient.getClient();                        
+                    this.tfvcRestClient = TfvcRestClient.getClient();
+                    this.gitRestClient = GitRestClient.getClient();
                     this.Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
                         .spread((dataService: IExtensionDataService) => {
                             this.extensionData = dataService;
@@ -71,16 +90,20 @@
         init() {
             this.$scope.$apply(() => {
                 this.loading.page = true;
+                this.webContext = VSS.getWebContext();
+                this.loadCheckins();
             });
             this.Q.all([
                     this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID),
-                    this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME)
+                    this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME),
+                    this.extensionData.getValue("ProjectID-" + this.webContext.project.id)
                 ])
-                .spread((userId, accountName) => {
+                .spread((userId, accountName, projectId) => {
 
                     this.$scope.$apply(() => {
                         this.currentUserId = userId;
                         this.accountName = accountName;
+                        this.projectId = projectId;
 
                         if (userId && accountName) {
                             this.loggedIn = true;
@@ -93,6 +116,32 @@
                 }, (error) => {
                     console.log("Error loading VSTS data");
                     console.log(error);
+                });
+        }
+
+        loadCheckins() {
+            //this.gitRestClient.getPullRequestsByProject(this.webContext.project.id)
+            //    .then((data) => {
+            //        this.$scope.$apply(() => {
+            //            this.allCheckins = data;
+            //        });
+            //    });
+            this.tfvcRestClient.getChangesets(this.webContext.project.id, null, null, true, null, null, null, null, null, { fromDate: moment().format("YYYY-MM-DD"), toDate: moment().add(1, "day").format("YYYY-MM-DD") })
+                .then((data) => {
+                    var promiseList = [];
+                    var i = 0;
+                    for (i = 0; i < data.length; i++) {
+                        promiseList.push(this.tfvcRestClient.getChangesetWorkItems(data[i].changesetId));
+                    }
+                    this.Q.all(promiseList).then((values) => {
+                        this.$scope.$apply(() => {
+                            var w = 0;
+                            for (w = 0; w < values.length; w++) {
+                                data[w].workItems = values[w];
+                            }
+                            this.allCheckins = data;
+                        });
+                    });
                 });
         }
 
@@ -119,6 +168,20 @@
 
         getApiUri(relativeUri) {
             return "https://" + this.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
+        }
+
+        toggleActive(item) {
+            item.active = !item.active;
+
+            if (item.workItems && item.workItems.length > 0) {
+                for (var i = 0; i < item.workItems.length; i++) {
+                    item.workItems[i].active = item.active;
+                }
+            }
+        }
+
+        saveTimesheet() {
+
         }
     }
 

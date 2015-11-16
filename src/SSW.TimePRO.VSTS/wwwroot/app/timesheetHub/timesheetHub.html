@@ -6,7 +6,9 @@
     <script src="/sdk/scripts/VSS.SDK.js"></script>
 
     <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.css" />
-    <link rel="stylesheet" href="/lib/ladda/dist/ladda-themeless.min.css" />
+    <link rel="stylesheet" href="/lib/ladda/dist/ladda-themeless.min.css"/>
+    <link rel="stylesheet" href="/lib/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css"/>
+    <link rel="stylesheet" href="/css/site.min.css"/>
 </head>
 <body ng-app="app" ng-controller="TimesheetHubController as vm">
     <div class="container-fluid">
@@ -47,20 +49,54 @@
 
             <div class="row" ng-if="vm.loggedIn" ng-cloak>
                 <div class="col-sm-6 col-md-4 col-lg-3">
-                    <label>Currently Logged In As:</label>
-                    <p>
-                        <strong>{{vm.currentUserId}}</strong>
-                    </p>
-                    <button type="button" class="btn btn-danger" ng-click="vm.disconnect()" loading-button="vm.loading.disconnect">Disconnect</button>
+                    <h3>Sun, 15th November 2015</h3>
+
                     <div class="form-group">
-                        Setup
-                        <label>Client</label>
-                        <label>Project</label>
-                        <label>Rate</label>
-                    </div>
-                    <div>
-                        <label>Date: Sun, 15th November 2015</label>
                         <label>Hours</label>
+                        <input type="text" ng-model="vm.hours" class="form-control"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Extra Notes:</label>
+                        <textarea rows="4" ng-model="vm.notes" class="form-control"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary btn-block">Save Timesheet</button>
+                    </div>
+
+                    <label>Currently Logged In As:</label>
+                    <span>
+                        <strong>{{vm.currentUserId}}</strong>
+                    </span>
+                    <p class="pull-right">
+                        <a href="#" class="" ng-click="vm.disconnect()" loading-button="vm.loading.disconnect">Disconnect</a>
+                    </p>
+                </div>
+                <div class="col-sm-6 col-md-8 col-lg-9">
+                    <h3>&nbsp;</h3>
+                    <label>Select Check-ins</label>
+                    <!--<span>
+                        <a href="#">All</a>
+                        <a href="#">None</a>
+                    </span>-->
+                    <div class="list-group">
+                        <a href="#" class="list-group-item" ng-repeat-start="item in vm.allCheckins" ng-class="{'active': item.active2}" ng-click="vm.toggleActive(item)">
+                            <div class="checkbox checkbox-primary pull-left">
+                                <input type="checkbox" ng-checked="item.active">
+                                <label></label>
+                            </div>
+                            <h4 class="list-group-item-heading">{{item.comment}}</h4>
+                            <p class="list-group-item-text">{{item.createdDate | date: 'EEE, d MMMM yyyy'}}</p>
+                        </a>
+                        <a href="#" class="list-group-item" ng-repeat-end ng-repeat="workItem in item.workItems" ng-click="vm.toggleActive(workItem)" style="margin-left:20px;">
+                            <div class="checkbox checkbox-primary pull-left">
+                                <input type="checkbox" ng-checked="workItem.active">
+                                <label></label>
+                            </div>
+                            <span class="text-muted">Work Item</span>
+                            <h5 class="list-group-item-heading">{{workItem.title}}</h5>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -76,9 +112,10 @@
     <script src="/lib/ladda/dist/ladda.min.js"></script>
     <!-- endbower -->
     <script src="/lib/ladda/dist/ladda.jquery.min.js"></script>
+    <script src="/lib/moment/moment.js"></script>
 
     <script src="/app/app.js"></script>
-<script src="/app/timesheetHub/timesheetHub.js"></script>
+    <script src="/app/timesheetHub/timesheetHub.js"></script>
     <script src="/app/projectSettingsHub/projectSettingsHub.js"></script>
     <script src="/app/adminCollection/adminCollection.js"></script>
 </body>

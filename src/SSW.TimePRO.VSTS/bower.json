@@ -4,6 +4,8 @@
   "dependencies": {
     "angular": "1.4.7",
     "bootstrap": "3.3.2",
-    "ladda": "0.9.8"
+    "ladda": "0.9.8",
+    "awesome-bootstrap-checkbox": "0.3.5",
+    "moment": "2.10.6"
   }
 }
