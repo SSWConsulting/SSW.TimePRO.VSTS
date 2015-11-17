@@ -31,6 +31,7 @@
         public static get ACCOUNT_NAME(): string { return "TimePROAccountName"; }
         public static get CURRENT_USER_ID(): string { return "TimePROCurrentUserId"; }
 
+        private configured: boolean;
         private accountName: string;
         private settingsForm: ISettingsForm;
         private loggedIn: boolean;
@@ -79,7 +80,7 @@
             this.Q.all([
                 this.extensionData.getValue(ProjectSettingsHubController.API_KEY),
                 this.extensionData.getValue(ProjectSettingsHubController.ACCOUNT_NAME),
-                this.extensionData.getValue("ProjectID-" + this.webContext.project.id)
+                this.extensionData.getValue("ProjectID-" + this.webContext.project.id, { scopeType: "User" })
             ])
                 .spread((apiKey, accountName, projectId) => {
 
@@ -92,6 +93,12 @@
                             this.loggedIn = true;
                         } else {
                             this.loggedIn = false;
+                        }
+
+                        if (!apiKey) {
+                            this.configured = false;
+                        } else {
+                            this.configured = true;
                         }
 
                         this.loading.page = false;
@@ -115,7 +122,7 @@
                     console.log("Success");
                     console.log(data);
 
-                    this.extensionData.setValue("ProjectID-" + this.webContext.project.id, this.settingsForm.projectId);
+                    this.extensionData.setValue("ProjectID-" + this.webContext.project.id, this.settingsForm.projectId, { scopeType: "User" });
                     this.loading.save = false;
                     this.success.save = true;
                 })

@@ -52,7 +52,7 @@ var ProjectSettingsHub;
             this.Q.all([
                 this.extensionData.getValue(ProjectSettingsHubController.API_KEY),
                 this.extensionData.getValue(ProjectSettingsHubController.ACCOUNT_NAME),
-                this.extensionData.getValue("ProjectID-" + this.webContext.project.id)
+                this.extensionData.getValue("ProjectID-" + this.webContext.project.id, { scopeType: "User" })
             ])
                 .spread(function (apiKey, accountName, projectId) {
                 _this.$scope.$apply(function () {
@@ -64,6 +64,12 @@ var ProjectSettingsHub;
                     }
                     else {
                         _this.loggedIn = false;
+                    }
+                    if (!apiKey) {
+                        _this.configured = false;
+                    }
+                    else {
+                        _this.configured = true;
                     }
                     _this.loading.page = false;
                     var authdata = _this.Base64.encode(_this.apiKey + ':');
@@ -83,7 +89,7 @@ var ProjectSettingsHub;
                 .success(function (data) {
                 console.log("Success");
                 console.log(data);
-                _this.extensionData.setValue("ProjectID-" + _this.webContext.project.id, _this.settingsForm.projectId);
+                _this.extensionData.setValue("ProjectID-" + _this.webContext.project.id, _this.settingsForm.projectId, { scopeType: "User" });
                 _this.loading.save = false;
                 _this.success.save = true;
             })

@@ -12,6 +12,14 @@
     <div class="container-fluid">
         <h1>Project Settings</h1>
 
+        <div class="row" ng-if="!vm.loading.page && !vm.configured">
+            <div class="col-sm-12">
+                <h3>Let's Get Started</h3>
+                <p>Head over to the Administration page to sign in to your SSW TimePRO instance.</p>
+                <a href="{{vm.webContext.account.uri}}DefaultCollection/_admin/_apps/hub/bencull.sswtimepro.ssw-timepro-collection-admin-hub" target="_blank">DefaultCollection Administration Page</a>
+            </div>
+        </div>
+
         <div class="row" ng-if="vm.loading.page">
             <div class="col-sm-6 col-md-4 col-lg-3">
                 <label>Checking if you're logged in...</label>
@@ -22,10 +30,18 @@
                 </div>
             </div>
         </div>
-        <div ng-if="!vm.loading.page">
+        <div ng-if="vm.configured && !vm.loading.page">
             <div class="row">
                 <div class="col-sm-6 col-md-4 col-lg-3">
-                    <p>Set up the default values for the curent project.</p>
+                    <p>To start using this quick timesheet entry screen you need to do the following:</p>
+                    <ul>
+                        <li>Navigate to your instance of TimePRO and;</li>
+                        <li>Add a Client</li>
+                        <li>Add a Project</li>
+                        <li>Add at least one Project Iteration</li>
+                    </ul>
+                    <p>Once you've completed those steps, enter your Project ID below and we'll link that TimePRO project to this VisualStudio.com project.</p>
+
                     <div class="form-group">
                         <label>Project ID</label>
                         <input type="text" ng-model="vm.settingsForm.projectId" class="form-control"/>
@@ -43,8 +59,6 @@
             </div>
         </div>
     </div>
-
-<p>Context: {{vm.webContext | json}}</p>
 
 <!-- bower:js -->
     <script src="/lib/angular/angular.js"></script>

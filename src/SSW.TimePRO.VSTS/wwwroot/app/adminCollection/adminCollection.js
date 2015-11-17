@@ -17,7 +17,8 @@ var AdminCollection;
             // Wait for the SDK to be initialized
             VSS.ready(function () {
                 require(["q"], function (Q) {
-                    Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
+                    _this.Q = Q;
+                    _this.Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
                         .spread(function (dataService) {
                         _this.extensionData = dataService;
                         VSS.notifyLoadSucceeded();
@@ -41,14 +42,19 @@ var AdminCollection;
             this.$scope.$apply(function () {
                 _this.loading.page = true;
             });
-            this.extensionData.getValue(AdminCollectionController.API_KEY).then(function (value) {
+            this.Q.all([
+                this.extensionData.getValue(AdminCollectionController.API_KEY),
+                this.extensionData.getValue(AdminCollectionController.ACCOUNT_NAME)
+            ])
+                .spread(function (apiKey, accountName) {
                 _this.$scope.$apply(function () {
-                    if (value) {
+                    if (apiKey) {
                         _this.loggedIn = true;
                     }
                     else {
                         _this.loggedIn = false;
                     }
+                    _this.accountName = accountName;
                     _this.loading.page = false;
                 });
             });
@@ -63,6 +69,7 @@ var AdminCollection;
                 console.log(data);
                 _this.extensionData.setValue(AdminCollectionController.API_KEY, data.CurrentKey);
                 _this.extensionData.setValue(AdminCollectionController.ACCOUNT_NAME, data.timeProUrlID);
+                _this.accountName = data.timeProUrlID;
                 _this.loading.login = false;
                 _this.loggedIn = true;
             })

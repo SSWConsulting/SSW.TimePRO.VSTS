@@ -34,6 +34,8 @@ module AdminCollection {
         private loggedIn: boolean;
         private loading: ILoading;
         private error: IError;
+        private accountName: string;
+        private Q: any;
 
         static $inject = ['$http', '$scope'];
         constructor(private $http: angular.IHttpService, private $scope: angular.IScope) {
@@ -50,7 +52,8 @@ module AdminCollection {
             // Wait for the SDK to be initialized
             VSS.ready(() => {
                 require(["q"], (Q) => {
-                    Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
+                    this.Q = Q;
+                    this.Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
                         .spread((dataService: IExtensionDataService) => {
                             this.extensionData = dataService;
 
@@ -65,17 +68,22 @@ module AdminCollection {
             this.$scope.$apply(() => {
                 this.loading.page = true;
             });
-            this.extensionData.getValue(AdminCollectionController.API_KEY).then((value) => {
-                this.$scope.$apply(() => {
-                    if (value) {
-                        this.loggedIn = true;
-                    } else {
-                        this.loggedIn = false;
-                    }
+            this.Q.all([
+                    this.extensionData.getValue(AdminCollectionController.API_KEY),
+                    this.extensionData.getValue(AdminCollectionController.ACCOUNT_NAME)
+                ])
+                .spread((apiKey, accountName) => {
+                    this.$scope.$apply(() => {
+                        if (apiKey) {
+                            this.loggedIn = true;
+                        } else {
+                            this.loggedIn = false;
+                        }
 
-                    this.loading.page = false;
+                        this.accountName = accountName;
+                        this.loading.page = false;
+                    });
                 });
-            });
         }
 
         login() {
@@ -89,6 +97,7 @@ module AdminCollection {
 
                     this.extensionData.setValue(AdminCollectionController.API_KEY, data.CurrentKey);
                     this.extensionData.setValue(AdminCollectionController.ACCOUNT_NAME, data.timeProUrlID);
+                    this.accountName = data.timeProUrlID;
                     this.loading.login = false;
                     this.loggedIn = true;
                 })
