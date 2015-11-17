@@ -7,7 +7,7 @@ Click here to learn more. http://go.microsoft.com/fwlink/?LinkId=518007
 var gulp = require('gulp');
 var wiredep = require('wiredep').stream;
 
-gulp.task('default', function () {
+gulp.task('default', ['vss-sdk', 'bower'], function () {
     // place code for your default task here
 });
 
