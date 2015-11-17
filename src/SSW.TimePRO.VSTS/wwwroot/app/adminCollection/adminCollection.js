@@ -81,7 +81,7 @@ var AdminCollection;
             });
         };
         AdminCollectionController.prototype.getApiUri = function (relativeUri) {
-            return "https://" + this.loginForm.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
+            return "https://" + this.loginForm.accountName + ".sswtimepro.com/api/" + relativeUri;
         };
         AdminCollectionController.prototype.disconnect = function () {
             var _this = this;

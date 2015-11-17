@@ -266,7 +266,7 @@
         }
 
         getApiUri(relativeUri) {
-            return "https://" + this.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
+            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
         }
 
         toggleActive(item) {
