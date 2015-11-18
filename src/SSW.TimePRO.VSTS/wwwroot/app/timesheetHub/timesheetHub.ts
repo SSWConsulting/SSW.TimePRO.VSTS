@@ -116,7 +116,7 @@
 
         init() {
             this.$scope.$apply(() => {
-                this.timesheetDate = moment('2015-11-16').toDate();
+                this.timesheetDate = moment().toDate();
                 this.loading.page = true;
                 this.webContext = VSS.getWebContext();
                 this.loadCheckins();

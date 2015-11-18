@@ -59,7 +59,7 @@ var TimesheetHub;
         TimesheetHubController.prototype.init = function () {
             var _this = this;
             this.$scope.$apply(function () {
-                _this.timesheetDate = moment('2015-11-16').toDate();
+                _this.timesheetDate = moment().toDate();
                 _this.loading.page = true;
                 _this.webContext = VSS.getWebContext();
                 _this.loadCheckins();

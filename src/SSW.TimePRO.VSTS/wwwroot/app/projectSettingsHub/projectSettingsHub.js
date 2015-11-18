@@ -61,15 +61,11 @@ var ProjectSettingsHub;
                     _this.settingsForm.projectId = projectId;
                     if (apiKey && accountName) {
                         _this.loggedIn = true;
+                        _this.configured = true;
                     }
                     else {
                         _this.loggedIn = false;
-                    }
-                    if (!apiKey) {
                         _this.configured = false;
-                    }
-                    else {
-                        _this.configured = true;
                     }
                     _this.loading.page = false;
                     var authdata = _this.Base64.encode(_this.apiKey + ':');

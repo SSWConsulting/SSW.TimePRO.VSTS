@@ -91,14 +91,10 @@
 
                         if (apiKey && accountName) {
                             this.loggedIn = true;
+                            this.configured = true;
                         } else {
                             this.loggedIn = false;
-                        }
-
-                        if (!apiKey) {
                             this.configured = false;
-                        } else {
-                            this.configured = true;
                         }
 
                         this.loading.page = false;
