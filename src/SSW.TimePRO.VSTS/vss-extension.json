@@ -1,10 +1,11 @@
 ﻿{
   "manifestVersion": 1,
   "id": "sswtimepro",
-  "version": "0.2.1",
+  "version": "0.2.5",
   "name": "SSW TimePRO",
   "baseUri": "https://timepro-vsts.azurewebsites.net/",
   "publisher": "sswtv",
+  "public":  true,
   "scopes": [ "vso.profile", "vso.code", "vso.work_write" ],
   "icons": {
     "default": "wwwroot/images/timepro-logo-square.png"
@@ -35,7 +36,7 @@
       "uri": "https://www.sswtimepro.com"
     },
     "getstarted": {
-      "uri": "https://www.sswtimepro.com/Account/GetStarted"
+      "uri": "https://www.sswtimepro.com"
     },
     "learn": {
       "uri": "http://tv.ssw.com"
