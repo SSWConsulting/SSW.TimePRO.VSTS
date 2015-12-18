@@ -245,7 +245,12 @@
             this.loading.login = true;
             this.error.login = false;
 
-            this.$http.get(this.getApiUri("Authorization?email=" + this.loginForm.username + "&password=" + this.loginForm.password))
+            var requestData = {
+                email: this.loginForm.username,
+                password: this.loginForm.password
+            };
+
+            this.$http.post(this.getApiUri("Authorization"), requestData)
                 .success((data: IAuthorizationResponse) => {
                     console.log("Success");
                     console.log(data);

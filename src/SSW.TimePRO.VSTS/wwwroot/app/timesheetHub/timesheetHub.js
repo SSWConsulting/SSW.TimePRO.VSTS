@@ -177,7 +177,11 @@ var TimesheetHub;
             var _this = this;
             this.loading.login = true;
             this.error.login = false;
-            this.$http.get(this.getApiUri("Authorization?email=" + this.loginForm.username + "&password=" + this.loginForm.password))
+            var requestData = {
+                email: this.loginForm.username,
+                password: this.loginForm.password
+            };
+            this.$http.post(this.getApiUri("Authorization"), requestData)
                 .success(function (data) {
                 console.log("Success");
                 console.log(data);
