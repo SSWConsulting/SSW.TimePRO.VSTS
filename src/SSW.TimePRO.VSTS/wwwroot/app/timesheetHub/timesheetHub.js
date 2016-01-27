@@ -1,3 +1,4 @@
+/// <reference path="../../sdk/scripts/vss.d.ts" />
 var TimesheetHub;
 (function (TimesheetHub) {
     var TimesheetHubController = (function () {
@@ -12,26 +13,19 @@ var TimesheetHub;
                 page: true
             };
             this.error = {};
-            this.allCheckins = [
-                {
-                    title: "One"
-                },
-                {
-                    title: "Two"
-                },
-                {
-                    title: "Three"
-                }
-            ];
+            this.allCheckins = [];
             VSS.init({
                 usePlatformScripts: true
             });
             // Wait for the SDK to be initialized
             VSS.ready(function () {
-                require(["q", "TFS/VersionControl/TfvcRestClient", "TFS/VersionControl/GitRestClient"], function (Q, TfvcRestClient, GitRestClient) {
+                require(["q", "TFS/Core/RestClient", "TFS/VersionControl/TfvcRestClient", "TFS/VersionControl/GitRestClient", "VSS/Controls", "VSS/Controls/Splitter"], function (Q, TfsCoreRestClient, TfvcRestClient, GitRestClient, Controls, Splitter) {
                     _this.Q = Q;
+                    _this.tfsCoreRestClient = TfsCoreRestClient.getClient();
                     _this.tfvcRestClient = TfvcRestClient.getClient();
                     _this.gitRestClient = GitRestClient.getClient();
+                    _this.VssControls = Controls;
+                    _this.VssSplitter = Splitter;
                     _this.Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
                         .spread(function (dataService) {
                         _this.extensionData = dataService;
@@ -59,10 +53,24 @@ var TimesheetHub;
         TimesheetHubController.prototype.init = function () {
             var _this = this;
             this.$scope.$apply(function () {
+                _this.splitter = _this.VssControls.Enhancement.enhance(_this.VssSplitter.Splitter, $(".my-splitter"), { initialSize: 350 });
+                _this.splitter.collapse();
                 _this.timesheetDate = moment().toDate();
                 _this.loading.page = true;
                 _this.webContext = VSS.getWebContext();
-                _this.loadCheckins();
+                console.log(_this.webContext);
+                _this.tfsCoreRestClient.getProject(_this.webContext.project.id, true, false).then(function (data) {
+                    console.log(data);
+                    if (data.capabilities.versioncontrol.sourceControlType == "Git") {
+                        console.log("Detected Git Repository, loading pull request data.");
+                        _this.isGitRepository = true;
+                    }
+                    else {
+                        console.log("Could not find git repository, falling back to TFVC - Loading Checkin data.");
+                        _this.isGitRepository = false;
+                    }
+                    _this.loadCheckinsOrCommits();
+                });
             });
             this.Q.all([
                 this.extensionData.getValue(TimesheetHubController.API_KEY),
@@ -88,6 +96,9 @@ var TimesheetHub;
                     else {
                         _this.loggedIn = false;
                     }
+                    if (!projectId) {
+                        _this.splitter.expand();
+                    }
                     var authdata = _this.Base64.encode(_this.apiKey + ':');
                     _this.$http.defaults.headers.common['Authorization'] = 'Basic ' + authdata;
                     _this.loadTimesheet();
@@ -97,6 +108,12 @@ var TimesheetHub;
                 console.log("Error loading VSTS data");
                 console.log(error);
             });
+        };
+        TimesheetHubController.prototype.expand = function () {
+            this.splitter.expand();
+        };
+        TimesheetHubController.prototype.collapse = function () {
+            this.splitter.collapse();
         };
         TimesheetHubController.prototype.loadTimesheet = function () {
             var _this = this;
@@ -115,14 +132,16 @@ var TimesheetHub;
                 console.log(error);
             });
         };
+        TimesheetHubController.prototype.loadCheckinsOrCommits = function () {
+            if (this.isGitRepository) {
+                this.loadGitCommits();
+            }
+            else {
+                this.loadCheckins();
+            }
+        };
         TimesheetHubController.prototype.loadCheckins = function () {
             var _this = this;
-            //this.gitRestClient.getPullRequestsByProject(this.webContext.project.id)
-            //    .then((data) => {
-            //        this.$scope.$apply(() => {
-            //            this.allCheckins = data;
-            //        });
-            //    });
             this.loading.checkins = true;
             this.allCheckins = [];
             this.tfvcRestClient.getChangesets(this.webContext.project.id, null, null, true, null, null, null, null, null, { fromDate: moment(this.timesheetDate).format("YYYY-MM-DD"), toDate: moment(this.timesheetDate).add(1, "day").format("YYYY-MM-DD") })
@@ -131,6 +150,28 @@ var TimesheetHub;
                 var i = 0;
                 for (i = 0; i < data.length; i++) {
                     promiseList.push(_this.tfvcRestClient.getChangesetWorkItems(data[i].changesetId));
+                }
+                _this.Q.all(promiseList).then(function (values) {
+                    _this.$scope.$apply(function () {
+                        var w = 0;
+                        for (w = 0; w < values.length; w++) {
+                            data[w].workItems = values[w];
+                        }
+                        _this.allCheckins = data;
+                        _this.updateActiveCheckins();
+                        _this.loading.checkins = false;
+                    });
+                });
+            });
+        };
+        TimesheetHubController.prototype.loadGitCommits = function () {
+            var _this = this;
+            this.gitRestClient.getPullRequestsByProject(this.webContext.project.id)
+                .then(function (data) {
+                var promiseList = [];
+                var i = 0;
+                for (i = 0; i < data.length; i++) {
+                    promiseList.push(_this.gitRestClient.getPullRequestWorkItems(data[i].repository.id, data[i].pullRequestId));
                 }
                 _this.Q.all(promiseList).then(function (values) {
                     _this.$scope.$apply(function () {
@@ -170,7 +211,7 @@ var TimesheetHub;
         };
         TimesheetHubController.prototype.changeDay = function (days) {
             this.timesheetDate = moment(this.timesheetDate).add(days, "day").toDate();
-            this.loadCheckins();
+            this.loadCheckinsOrCommits();
             this.loadTimesheet();
         };
         TimesheetHubController.prototype.login = function () {

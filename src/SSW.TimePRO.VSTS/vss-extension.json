@@ -1,11 +1,15 @@
 ﻿{
   "manifestVersion": 1,
   "id": "sswtimepro",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "name": "SSW TimePRO",
-  "baseUri": "https://timepro-vsts.azurewebsites.net/",
-  "publisher": "sswtv",
-  "public":  true,
+  "baseUri": "https://localhost:44387/",
+  "publisher": "bencull",
+  "targets": [
+    {
+      "id": "Microsoft.VisualStudio.Services"
+    }
+  ],
   "scopes": [ "vso.profile", "vso.code", "vso.work_write" ],
   "icons": {
     "default": "wwwroot/images/timepro-logo-square.png"
@@ -21,11 +25,11 @@
     "cost",
     "notes"
   ],
-   "screenshots": [
-     {
-         "path": "wwwroot/images/TimePRO_Screenshot2.png"
-     }
- ],
+  "screenshots": [
+    {
+      "path": "wwwroot/images/TimePRO_Screenshot2.png"
+    }
+  ],
   "content": {
     "details": {
       "path": "Overview.md"
@@ -49,56 +53,56 @@
     "color": "#333",
     "theme": "dark"
   },
-    "contributions": [
-      {
-        "id": "ssw-timepro-hub-group",
-        "type": "ms.vss-web.hub-group",
-        "description": "The top level hub group for TimePRO",
-        "targets": [
-          "ms.vss-web.project-hub-groups-collection"
-        ],
-        "properties": {
-          "name": "TimePRO",
-          "order": 100
-        }
-      },
-      {
-        "id": "ssw-timepro-timesheets",
-        "type": "ms.vss-web.hub",
-        "description": "The default hub for the TimePRO hub group.",
-        "targets": [
-          ".ssw-timepro-hub-group"
-        ],
-        "properties": {
-          "name": "Timesheets",
-          "order": 100,
-          "uri": "app/timesheetHub/timesheetHub.html"
-        }
-      },
-      {
-        "id": "ssw-timepro-project-settings",
-        "type": "ms.vss-web.hub",
-        "description": "The default hub for the TimePRO hub group.",
-        "targets": [
-          ".ssw-timepro-hub-group"
-        ],
-        "properties": {
-          "name": "Project Settings",
-          "order": 100,
-          "uri": "app/projectSettingsHub/projectSettingsHub.html"
-        }
-      },
-      {
-        "id": "ssw-timepro-collection-admin-hub",
-        "type": "ms.vss-web.hub",
-        "targets": [
-          "ms.vss-web.collection-admin-hub-group"
-        ],
-        "properties": {
-          "name": "SSW TimePRO",
-          "order": 30,
-          "uri": "app/adminCollection/adminCollection.html"
-        }
+  "contributions": [
+    {
+      "id": "ssw-timepro-hub-group",
+      "type": "ms.vss-web.hub-group",
+      "description": "The top level hub group for TimePRO",
+      "targets": [
+        "ms.vss-web.project-hub-groups-collection"
+      ],
+      "properties": {
+        "name": "TimePRO",
+        "order": 100
       }
-    ]
-  }
+    },
+    {
+      "id": "ssw-timepro-timesheets",
+      "type": "ms.vss-web.hub",
+      "description": "The default hub for the TimePRO hub group.",
+      "targets": [
+        ".ssw-timepro-hub-group"
+      ],
+      "properties": {
+        "name": "Timesheets",
+        "order": 100,
+        "uri": "app/timesheetHub/timesheetHub.html"
+      }
+    },
+    {
+      "id": "ssw-timepro-project-settings",
+      "type": "ms.vss-web.hub",
+      "description": "The default hub for the TimePRO hub group.",
+      "targets": [
+        ".ssw-timepro-hub-group"
+      ],
+      "properties": {
+        "name": "Project Settings",
+        "order": 100,
+        "uri": "app/projectSettingsHub/projectSettingsHub.html"
+      }
+    },
+    {
+      "id": "ssw-timepro-collection-admin-hub",
+      "type": "ms.vss-web.hub",
+      "targets": [
+        "ms.vss-web.collection-admin-hub-group"
+      ],
+      "properties": {
+        "name": "SSW TimePRO",
+        "order": 30,
+        "uri": "app/adminCollection/adminCollection.html"
+      }
+    }
+  ]
+}
