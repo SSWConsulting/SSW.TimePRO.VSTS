@@ -1,6 +1,6 @@
 var App;
 (function (App) {
-    angular.module('app', ['adminCollection', 'TimesheetHub', 'ProjectSettingsHub'])
+    angular.module('app', ['adminCollection', 'TimesheetHub', 'ProjectSettingsHub', 'TimesheetEntryDay'])
         .directive('loadingButton', [
         '$compile', function ($compile) {
             return {

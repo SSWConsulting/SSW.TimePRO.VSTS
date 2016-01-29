@@ -1,0 +1,57 @@
+﻿<div>
+    <h3>{{vm.timesheetDate | date: 'EEE, d MMMM yyyy'}}</h3>
+
+    <p class="text-danger" ng-if="!vm.existingTimesheet">No timesheet for today</p>
+    <p class="text-success" ng-if="vm.existingTimesheet">Timesheet complete</p>
+
+    <div class="form-group">
+        <label>Hours</label>
+        <input type="text" ng-model="vm.timesheetForm.Hours" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Extra Notes:</label>
+        <textarea rows="4" ng-model="vm.timesheetForm.Notes" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group">
+        <button type="button" class="btn btn-primary btn-block" loading-button="vm.loading.save" ng-click="vm.saveTimesheet()">Save Timesheet</button>
+    </div>
+
+    <div class="form-group">
+        <label>Select Check-ins</label>
+        <div class="row" ng-if="vm.loading.checkins">
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <label>Loading checkins / commits...</label>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                        <span class="sr-only">100% Complete</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="!vm.loading.checkins">
+            <p ng-if="!vm.allCheckins || vm.allCheckins.length == 0">No checkins found for today</p>
+            <div class="list-group" ng-if="vm.allCheckins">
+                <a class="list-group-item" ng-repeat-start="item in vm.allCheckins" ng-class="{'active': item.active2}" ng-click="vm.toggleActive(item)">
+                    <div class="checkbox checkbox-primary pull-left">
+                        <input type="checkbox" ng-checked="item.active">
+                        <label></label>
+                    </div>
+                    <h4 class="list-group-item-heading">{{item.comment}}</h4>
+                    <p class="list-group-item-text">
+                        <strong>{{item.createdDate | date: 'h:mm a'}}</strong> - {{item.createdDate | date: 'EEE, d MMMM yyyy'}}
+                    </p>
+                </a>
+                <a class="list-group-item" ng-repeat-end ng-repeat="workItem in item.workItems" ng-click="vm.toggleActive(workItem)" style="margin-left: 20px;">
+                    <div class="checkbox checkbox-primary pull-left">
+                        <input type="checkbox" ng-checked="workItem.active">
+                        <label></label>
+                    </div>
+                    <span class="text-muted">Work Item</span>
+                    <h5 class="list-group-item-heading">{{workItem.title}}</h5>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
