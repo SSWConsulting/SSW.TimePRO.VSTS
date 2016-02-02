@@ -151,14 +151,6 @@ var TimesheetHub;
                 _this.error.login = true;
             });
         };
-        TimesheetHubController.prototype.toggleActive = function (item) {
-            item.active = !item.active;
-            if (item.workItems && item.workItems.length > 0) {
-                for (var i = 0; i < item.workItems.length; i++) {
-                    item.workItems[i].active = item.active;
-                }
-            }
-        };
         TimesheetHubController.prototype.disconnect = function () {
             var _this = this;
             this.loading.disconnect = true;

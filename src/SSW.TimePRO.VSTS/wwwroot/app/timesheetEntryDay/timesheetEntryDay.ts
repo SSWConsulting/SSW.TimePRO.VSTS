@@ -26,6 +26,20 @@
         save: boolean;
     }
 
+    interface ICheckin {
+        changesetId: string;
+        comment: string;
+        active: boolean;
+        createdDate: Date;
+        workItems: IWorkItem[];
+    }
+
+    interface IWorkItem {
+        id: string;
+        title: string;
+        active: boolean;
+    }
+
     class TimesheetEntryDay {
         //public link: (scope: angular.IScope, element: angular.IAugmentedJQuery, attrs: angular.IAttributes) => void;
         public scope = {
@@ -67,7 +81,7 @@
         private currentUserId: string;
         private projectId: string;
         private accountName: string;
-        private allCheckins: any[] = [];
+        private allCheckins: ICheckin[] = [];
         private loading: ILoading = <ILoading>{};
         private isGitRepository: boolean;
         private gitRestClient: any;
@@ -168,18 +182,24 @@
 
             this.gitRestClient.getPullRequestsByProject(this.vstsProjectId)
                 .then((data) => {
+                    var checkinList = [];
                     var promiseList = [];
                     var i = 0;
                     for (i = 0; i < data.length; i++) {
-                        promiseList.push(this.gitRestClient.getPullRequestWorkItems(data[i].repository.id, data[i].pullRequestId));
+                        if (moment(data[i].creationDate).isBetween(moment(this.timesheetDate), moment(this.timesheetDate).add(1, 'day'))) {
+                            checkinList.push(data[i]);
+                            promiseList.push(this.gitRestClient.getPullRequestWorkItems(data[i].repository.id, data[i].pullRequestId));
+                        } 
                     }
                     this.q.all(promiseList).then((values) => {
                         this.$scope.$apply(() => {
                             var w = 0;
                             for (w = 0; w < values.length; w++) {
-                                data[w].workItems = values[w];
+                                checkinList[w].workItems = values[w];
+                                checkinList[w].comment = checkinList[w].description;
+                                checkinList[w].createdDate = checkinList[w].creationDate;
                             }
-                            this.allCheckins = data;
+                            this.allCheckins = checkinList;
                             this.updateActiveCheckins();
                             this.loading.checkins = false;
                         });
@@ -227,6 +247,16 @@
                     console.log(error);
                     this.loading.save = false;
                 });
+        }
+
+        toggleActive(item) {
+            item.active = !item.active;
+
+            if (item.workItems && item.workItems.length > 0) {
+                for (var i = 0; i < item.workItems.length; i++) {
+                    item.workItems[i].active = item.active;
+                }
+            }
         }
 
         getApiUri(relativeUri) {

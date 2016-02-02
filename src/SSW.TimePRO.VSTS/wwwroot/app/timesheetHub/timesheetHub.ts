@@ -206,16 +206,6 @@ module TimesheetHub {
                 });
         }
 
-        toggleActive(item) {
-            item.active = !item.active;
-
-            if (item.workItems && item.workItems.length > 0) {
-                for (var i = 0; i < item.workItems.length; i++) {
-                    item.workItems[i].active = item.active;
-                }
-            }
-        }
-
         disconnect() {
             this.loading.disconnect = true;
             this.extensionData.setValue(TimesheetHubController.CURRENT_USER_ID, null, { scopeType: "User" }).then(() => {

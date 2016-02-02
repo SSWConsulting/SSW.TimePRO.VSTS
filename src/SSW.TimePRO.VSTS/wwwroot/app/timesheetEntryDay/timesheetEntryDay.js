@@ -122,18 +122,24 @@ var TimesheetEntryDay;
             this.allCheckins = [];
             this.gitRestClient.getPullRequestsByProject(this.vstsProjectId)
                 .then(function (data) {
+                var checkinList = [];
                 var promiseList = [];
                 var i = 0;
                 for (i = 0; i < data.length; i++) {
-                    promiseList.push(_this.gitRestClient.getPullRequestWorkItems(data[i].repository.id, data[i].pullRequestId));
+                    if (moment(data[i].creationDate).isBetween(moment(_this.timesheetDate), moment(_this.timesheetDate).add(1, 'day'))) {
+                        checkinList.push(data[i]);
+                        promiseList.push(_this.gitRestClient.getPullRequestWorkItems(data[i].repository.id, data[i].pullRequestId));
+                    }
                 }
                 _this.q.all(promiseList).then(function (values) {
                     _this.$scope.$apply(function () {
                         var w = 0;
                         for (w = 0; w < values.length; w++) {
-                            data[w].workItems = values[w];
+                            checkinList[w].workItems = values[w];
+                            checkinList[w].comment = checkinList[w].description;
+                            checkinList[w].createdDate = checkinList[w].creationDate;
                         }
-                        _this.allCheckins = data;
+                        _this.allCheckins = checkinList;
                         _this.updateActiveCheckins();
                         _this.loading.checkins = false;
                     });
@@ -176,6 +182,14 @@ var TimesheetEntryDay;
                 console.log(error);
                 _this.loading.save = false;
             });
+        };
+        TimesheetEntryDayController.prototype.toggleActive = function (item) {
+            item.active = !item.active;
+            if (item.workItems && item.workItems.length > 0) {
+                for (var i = 0; i < item.workItems.length; i++) {
+                    item.workItems[i].active = item.active;
+                }
+            }
         };
         TimesheetEntryDayController.prototype.getApiUri = function (relativeUri) {
             return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
