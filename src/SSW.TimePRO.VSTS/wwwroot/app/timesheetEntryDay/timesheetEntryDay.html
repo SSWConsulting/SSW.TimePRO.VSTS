@@ -34,14 +34,17 @@
             <p ng-if="!vm.allCheckins || vm.allCheckins.length == 0">No checkins found for today</p>
             <div class="list-group" ng-if="vm.allCheckins">
                 <a class="list-group-item" ng-repeat-start="item in vm.allCheckins" ng-class="{'active': item.active2}" ng-click="vm.toggleActive(item)">
+                    <div class="list-group-category">Pull Request</div>
                     <div class="checkbox checkbox-primary pull-left">
                         <input type="checkbox" ng-checked="item.active">
                         <label></label>
                     </div>
-                    <h4 class="list-group-item-heading">{{item.comment}}</h4>
-                    <p class="list-group-item-text">
-                        <strong>{{item.createdDate | date: 'h:mm a'}}</strong> - {{item.createdDate | date: 'EEE, d MMMM yyyy'}}
-                    </p>
+                    <div class="list-group-item-content">
+                        <h4 class="list-group-item-heading">{{item.comment}}</h4>
+                        <p class="list-group-item-text">
+                            <strong>{{item.createdDate | date: 'h:mm a'}}</strong> - {{item.createdDate | date: 'EEE, d MMMM yyyy'}}
+                        </p>
+                    </div>
                 </a>
                 <a class="list-group-item" ng-repeat-end ng-repeat="workItem in item.workItems" ng-click="vm.toggleActive(workItem)" style="margin-left: 20px;">
                     <div class="checkbox checkbox-primary pull-left">

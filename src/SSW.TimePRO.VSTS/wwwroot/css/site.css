@@ -17,6 +17,21 @@ body {
 .form-control-vsts {
   width: 100%;
 }
+.list-group .list-group-item {
+  overflow: hidden;
+}
+.list-group .list-group-item:first-child .list-group-category {
+  border-radius: 3px 3px 0px 0px;
+}
+.list-group .list-group-item .list-group-category {
+  background-color: #ddd;
+  text-transform: uppercase;
+  margin: -11px -15px 10px;
+  padding: 0px 5px;
+}
+.list-group .list-group-item .list-group-item-content {
+  margin-left: 25px;
+}
 .col-xs-5ths,
 .col-sm-5ths,
 .col-md-5ths,

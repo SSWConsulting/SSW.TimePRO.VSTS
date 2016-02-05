@@ -120,7 +120,7 @@ var TimesheetEntryDay;
             var _this = this;
             this.loading.checkins = true;
             this.allCheckins = [];
-            this.gitRestClient.getPullRequestsByProject(this.vstsProjectId)
+            this.gitRestClient.getPullRequestsByProject(this.vstsProjectId, { status: "all" })
                 .then(function (data) {
                 var checkinList = [];
                 var promiseList = [];
@@ -136,7 +136,7 @@ var TimesheetEntryDay;
                         var w = 0;
                         for (w = 0; w < values.length; w++) {
                             checkinList[w].workItems = values[w];
-                            checkinList[w].comment = checkinList[w].description;
+                            checkinList[w].comment = checkinList[w].title;
                             checkinList[w].createdDate = checkinList[w].creationDate;
                         }
                         _this.allCheckins = checkinList;

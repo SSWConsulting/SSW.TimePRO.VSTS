@@ -180,7 +180,7 @@
             this.loading.checkins = true;
             this.allCheckins = [];
 
-            this.gitRestClient.getPullRequestsByProject(this.vstsProjectId)
+            this.gitRestClient.getPullRequestsByProject(this.vstsProjectId, { status: "all" })
                 .then((data) => {
                     var checkinList = [];
                     var promiseList = [];
@@ -189,14 +189,14 @@
                         if (moment(data[i].creationDate).isBetween(moment(this.timesheetDate), moment(this.timesheetDate).add(1, 'day'))) {
                             checkinList.push(data[i]);
                             promiseList.push(this.gitRestClient.getPullRequestWorkItems(data[i].repository.id, data[i].pullRequestId));
-                        } 
+                        }
                     }
                     this.q.all(promiseList).then((values) => {
                         this.$scope.$apply(() => {
                             var w = 0;
                             for (w = 0; w < values.length; w++) {
                                 checkinList[w].workItems = values[w];
-                                checkinList[w].comment = checkinList[w].description;
+                                checkinList[w].comment = checkinList[w].title;
                                 checkinList[w].createdDate = checkinList[w].creationDate;
                             }
                             this.allCheckins = checkinList;
