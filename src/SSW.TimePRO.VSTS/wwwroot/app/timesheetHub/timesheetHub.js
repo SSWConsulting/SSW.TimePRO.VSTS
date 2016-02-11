@@ -56,8 +56,9 @@ var TimesheetHub;
                 _this.splitter.collapse();
                 _this.loading.page = true;
                 _this.webContext = VSS.getWebContext();
+                _this.vstsProjectId = _this.webContext.project.id;
                 console.log(_this.webContext);
-                _this.tfsCoreRestClient.getProject(_this.webContext.project.id, true, false).then(function (data) {
+                _this.tfsCoreRestClient.getProject(_this.vstsProjectId, true, false).then(function (data) {
                     console.log(data);
                     if (data.capabilities.versioncontrol.sourceControlType == "Git") {
                         console.log("Detected Git Repository, loading pull request data.");
@@ -68,12 +69,15 @@ var TimesheetHub;
                         _this.isGitRepository = false;
                     }
                 });
+                _this.gitRestClient.getRepositories(_this.vstsProjectId).then(function (data) {
+                    _this.repositories = data;
+                });
             });
             this.Q.all([
                 this.extensionData.getValue(TimesheetHubController.API_KEY),
                 this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID, { scopeType: "User" }),
                 this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME),
-                this.extensionData.getValue("ProjectID-" + this.webContext.project.id, { scopeType: "User" })
+                this.extensionData.getValue("ProjectID-" + this.vstsProjectId, { scopeType: "User" })
             ])
                 .spread(function (apiKey, userId, accountName, projectId) {
                 _this.$scope.$apply(function () {
@@ -162,7 +166,8 @@ var TimesheetHub;
             });
         };
         TimesheetHubController.prototype.getApiUri = function (relativeUri) {
-            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
+            //return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
+            return "https://" + this.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
         };
         TimesheetHubController.$inject = ['$http', '$scope', 'Base64'];
         return TimesheetHubController;

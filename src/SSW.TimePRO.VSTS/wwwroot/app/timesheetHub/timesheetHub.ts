@@ -42,6 +42,8 @@ module TimesheetHub {
         private error: IError;
         private currentUserId: string;
         private projectId: string;
+        private vstsProjectId: string;
+        private repositories: any[];
 
         private webContext: WebContext;
         private extensionData: IExtensionDataService;
@@ -97,8 +99,9 @@ module TimesheetHub {
                 this.splitter.collapse();
                 this.loading.page = true;
                 this.webContext = VSS.getWebContext();
+                this.vstsProjectId = this.webContext.project.id;
                 console.log(this.webContext);
-                this.tfsCoreRestClient.getProject(this.webContext.project.id, true, false).then((data) => {
+                this.tfsCoreRestClient.getProject(this.vstsProjectId, true, false).then((data) => {
                     console.log(data);
                     if (data.capabilities.versioncontrol.sourceControlType == "Git") {
                         console.log("Detected Git Repository, loading pull request data.");
@@ -108,12 +111,16 @@ module TimesheetHub {
                         this.isGitRepository = false;
                     }
                 });
+                this.gitRestClient.getRepositories(this.vstsProjectId).then(data => {
+                    this.repositories = data;
+                });
+
             });
             this.Q.all([
                     this.extensionData.getValue(TimesheetHubController.API_KEY),
                     this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID, { scopeType: "User" }),
                     this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME),
-                    this.extensionData.getValue("ProjectID-" + this.webContext.project.id, { scopeType: "User" })
+                    this.extensionData.getValue("ProjectID-" + this.vstsProjectId, { scopeType: "User" })
                 ])
                 .spread((apiKey, userId, accountName, projectId) => {
 
@@ -218,7 +225,8 @@ module TimesheetHub {
         }
 
         getApiUri(relativeUri) {
-            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
+            //return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
+            return "https://" + this.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
         }
 
     }
