@@ -1,3 +1,4 @@
+/// <reference path="../../sdk/scripts/vss.d.ts" />
 var TimesheetHub;
 (function (TimesheetHub) {
     var TimesheetHubController = (function () {
@@ -6,32 +7,24 @@ var TimesheetHub;
             this.$http = $http;
             this.$scope = $scope;
             this.Base64 = Base64;
+            this.currentDays = [];
             this.loginForm = {};
-            this.timesheetForm = {};
             this.loading = {
                 page: true
             };
             this.error = {};
-            this.allCheckins = [
-                {
-                    title: "One"
-                },
-                {
-                    title: "Two"
-                },
-                {
-                    title: "Three"
-                }
-            ];
             VSS.init({
                 usePlatformScripts: true
             });
             // Wait for the SDK to be initialized
             VSS.ready(function () {
-                require(["q", "TFS/VersionControl/TfvcRestClient", "TFS/VersionControl/GitRestClient"], function (Q, TfvcRestClient, GitRestClient) {
+                require(["q", "TFS/Core/RestClient", "TFS/VersionControl/TfvcRestClient", "TFS/VersionControl/GitRestClient", "VSS/Controls", "VSS/Controls/Splitter"], function (Q, TfsCoreRestClient, TfvcRestClient, GitRestClient, Controls, Splitter) {
                     _this.Q = Q;
+                    _this.tfsCoreRestClient = TfsCoreRestClient.getClient();
                     _this.tfvcRestClient = TfvcRestClient.getClient();
                     _this.gitRestClient = GitRestClient.getClient();
+                    _this.VssControls = Controls;
+                    _this.VssSplitter = Splitter;
                     _this.Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
                         .spread(function (dataService) {
                         _this.extensionData = dataService;
@@ -59,16 +52,32 @@ var TimesheetHub;
         TimesheetHubController.prototype.init = function () {
             var _this = this;
             this.$scope.$apply(function () {
-                _this.timesheetDate = moment().toDate();
+                _this.splitter = _this.VssControls.Enhancement.enhance(_this.VssSplitter.Splitter, $(".my-splitter"), { initialSize: 350 });
+                _this.splitter.collapse();
                 _this.loading.page = true;
                 _this.webContext = VSS.getWebContext();
-                _this.loadCheckins();
+                _this.vstsProjectId = _this.webContext.project.id;
+                console.log(_this.webContext);
+                _this.tfsCoreRestClient.getProject(_this.vstsProjectId, true, false).then(function (data) {
+                    console.log(data);
+                    if (data.capabilities.versioncontrol.sourceControlType == "Git") {
+                        console.log("Detected Git Repository, loading pull request data.");
+                        _this.isGitRepository = true;
+                    }
+                    else {
+                        console.log("Could not find git repository, falling back to TFVC - Loading Checkin data.");
+                        _this.isGitRepository = false;
+                    }
+                });
+                _this.gitRestClient.getRepositories(_this.vstsProjectId).then(function (data) {
+                    _this.repositories = data;
+                });
             });
             this.Q.all([
                 this.extensionData.getValue(TimesheetHubController.API_KEY),
                 this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID, { scopeType: "User" }),
                 this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME),
-                this.extensionData.getValue("ProjectID-" + this.webContext.project.id, { scopeType: "User" })
+                this.extensionData.getValue("ProjectID-" + this.vstsProjectId, { scopeType: "User" })
             ])
                 .spread(function (apiKey, userId, accountName, projectId) {
                 _this.$scope.$apply(function () {
@@ -88,9 +97,12 @@ var TimesheetHub;
                     else {
                         _this.loggedIn = false;
                     }
+                    if (!projectId) {
+                        _this.splitter.expand();
+                    }
                     var authdata = _this.Base64.encode(_this.apiKey + ':');
                     _this.$http.defaults.headers.common['Authorization'] = 'Basic ' + authdata;
-                    _this.loadTimesheet();
+                    _this.changeDay(0);
                     _this.loading.page = false;
                 });
             }, function (error) {
@@ -98,80 +110,25 @@ var TimesheetHub;
                 console.log(error);
             });
         };
-        TimesheetHubController.prototype.loadTimesheet = function () {
-            var _this = this;
-            this.existingTimesheet = null;
-            this.timesheetForm = {};
-            this.$http.get(this.getApiUri("Timesheets/SingleTimesheet?empId=" + this.currentUserId + "&projectId=" + this.projectId + "&timesheetDate=" + moment(this.timesheetDate).format("YYYY-MM-DD")))
-                .success(function (data) {
-                console.log("Found timesheet for currentDate");
-                _this.existingTimesheet = data;
-                _this.timesheetForm.Hours = data.BillableHours;
-                _this.timesheetForm.Notes = data.Note;
-                _this.updateActiveCheckins();
-            })
-                .error(function (error) {
-                console.log("No timesheet found for currentDate or there was an error");
-                console.log(error);
-            });
+        TimesheetHubController.prototype.expand = function () {
+            this.splitter.expand();
         };
-        TimesheetHubController.prototype.loadCheckins = function () {
-            var _this = this;
-            //this.gitRestClient.getPullRequestsByProject(this.webContext.project.id)
-            //    .then((data) => {
-            //        this.$scope.$apply(() => {
-            //            this.allCheckins = data;
-            //        });
-            //    });
-            this.loading.checkins = true;
-            this.allCheckins = [];
-            this.tfvcRestClient.getChangesets(this.webContext.project.id, null, null, true, null, null, null, null, null, { fromDate: moment(this.timesheetDate).format("YYYY-MM-DD"), toDate: moment(this.timesheetDate).add(1, "day").format("YYYY-MM-DD") })
-                .then(function (data) {
-                var promiseList = [];
-                var i = 0;
-                for (i = 0; i < data.length; i++) {
-                    promiseList.push(_this.tfvcRestClient.getChangesetWorkItems(data[i].changesetId));
-                }
-                _this.Q.all(promiseList).then(function (values) {
-                    _this.$scope.$apply(function () {
-                        var w = 0;
-                        for (w = 0; w < values.length; w++) {
-                            data[w].workItems = values[w];
-                        }
-                        _this.allCheckins = data;
-                        _this.updateActiveCheckins();
-                        _this.loading.checkins = false;
-                    });
-                });
-            });
-        };
-        TimesheetHubController.prototype.updateActiveCheckins = function () {
-            var i = 0;
-            var c = 0;
-            var w = 0;
-            var w2 = 0;
-            if (!this.existingTimesheet || !this.allCheckins) {
-                return;
-            }
-            for (i = 0; i < this.allCheckins.length; i++) {
-                for (c = 0; c < this.existingTimesheet.CheckinIds.length; c++) {
-                    if (this.allCheckins[i].changesetId == this.existingTimesheet.CheckinIds[c]) {
-                        this.allCheckins[i].active = true;
-                    }
-                }
-                for (w = 0; w < this.allCheckins[i].workItems.length; w++) {
-                    for (w2 = 0; w2 < this.existingTimesheet.WorkItemIds.length; w2++) {
-                        if (this.allCheckins[i].workItems[w].id == this.existingTimesheet.WorkItemIds[w2]) {
-                            this.allCheckins[i].workItems[w].active = true;
-                        }
-                    }
-                }
-            }
+        TimesheetHubController.prototype.collapse = function () {
+            this.splitter.collapse();
         };
         TimesheetHubController.prototype.changeDay = function (days) {
-            this.timesheetDate = moment(this.timesheetDate).add(days, "day").toDate();
-            this.loadCheckins();
-            this.loadTimesheet();
+            var currentDate = this.currentDays[0] || moment().toDate();
+            var monday = moment(currentDate).startOf("week").add(1, "day").add(days, "week");
+            this.currentDays = [
+                monday.toDate(),
+                monday.clone().add(1, "day").toDate(),
+                monday.clone().add(2, "day").toDate(),
+                monday.clone().add(3, "day").toDate(),
+                monday.clone().add(4, "day").toDate()
+            ];
+            //this.timesheetDate = moment(this.timesheetDate).add(days, "day").toDate();
+            //this.loadCheckinsOrCommits();
+            //this.loadTimesheet();
         };
         TimesheetHubController.prototype.login = function () {
             var _this = this;
@@ -189,61 +146,13 @@ var TimesheetHub;
                 _this.currentUserId = data.EmpID;
                 _this.loading.login = false;
                 _this.loggedIn = true;
-                _this.changeDay(0);
+                //this.changeDay(0);
             })
                 .error(function (error) {
                 console.log("Error");
                 console.log(error);
                 _this.loading.login = false;
                 _this.error.login = true;
-            });
-        };
-        TimesheetHubController.prototype.getApiUri = function (relativeUri) {
-            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
-        };
-        TimesheetHubController.prototype.toggleActive = function (item) {
-            item.active = !item.active;
-            if (item.workItems && item.workItems.length > 0) {
-                for (var i = 0; i < item.workItems.length; i++) {
-                    item.workItems[i].active = item.active;
-                }
-            }
-        };
-        TimesheetHubController.prototype.saveTimesheet = function () {
-            var _this = this;
-            var i = 0;
-            var k = 0;
-            this.loading.save = true;
-            var postData = this.timesheetForm;
-            postData.EmpID = this.currentUserId;
-            postData.ProjectID = this.projectId;
-            postData.TimesheetDate = moment(this.timesheetDate).format("YYYY-MM-DD");
-            var checkinIds = [];
-            var workItemIds = [];
-            for (i = 0; i < this.allCheckins.length; i++) {
-                if (this.allCheckins[i].active) {
-                    checkinIds.push(this.allCheckins[i].changesetId);
-                }
-                for (k = 0; k < this.allCheckins[i].workItems.length; k++) {
-                    if (this.allCheckins[i].workItems[k].active) {
-                        workItemIds.push(this.allCheckins[i].workItems[k].id);
-                    }
-                }
-            }
-            postData.ChangesetIds = checkinIds;
-            postData.WorkItemIds = workItemIds;
-            if (this.existingTimesheet) {
-                postData.TimesheetID = this.existingTimesheet.TimesheetID;
-            }
-            this.$http.post(this.getApiUri("Timesheets/QuickCreate"), postData)
-                .success(function (data) {
-                _this.existingTimesheet = data;
-                _this.loading.save = false;
-            })
-                .error(function (error) {
-                console.log("Error saving timesheet");
-                console.log(error);
-                _this.loading.save = false;
             });
         };
         TimesheetHubController.prototype.disconnect = function () {
@@ -255,6 +164,9 @@ var TimesheetHub;
                 });
                 _this.init(); // Init assumes no scope
             });
+        };
+        TimesheetHubController.prototype.getApiUri = function (relativeUri) {
+            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
         };
         TimesheetHubController.$inject = ['$http', '$scope', 'Base64'];
         return TimesheetHubController;

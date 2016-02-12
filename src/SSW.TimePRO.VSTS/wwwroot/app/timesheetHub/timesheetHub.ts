@@ -1,4 +1,6 @@
-﻿module TimesheetHub {
+﻿/// <reference path="../../sdk/scripts/vss.d.ts" />
+
+module TimesheetHub {
 
     interface ILoginForm {
         username: string;
@@ -26,26 +28,6 @@
         login: boolean;
     }
 
-    interface ITimesheetForm {
-        TimesheetID: string;
-        EmpID: string;
-        ProjectID: string;
-        Hours: number;
-        TimesheetDate: string;
-        Notes: string;
-        ChangesetIds: string[];
-        WorkItemIds: string[];
-    }
-
-    interface ITimesheet {
-        TimesheetID: string;
-        BillableHours: number;
-        Note: string;
-        TimesheetDate: Date;
-        CheckinIds: string[];
-        WorkItemIds: string[];
-    }
-
     class TimesheetHubController {
         public static get API_KEY(): string { return "TimePROApiKey"; }
         public static get ACCOUNT_NAME(): string { return "TimePROAccountName"; }
@@ -60,38 +42,31 @@
         private error: IError;
         private currentUserId: string;
         private projectId: string;
-        private timesheetDate: Date;
-        private existingTimesheet: ITimesheet;
-        private timesheetForm: ITimesheetForm;
+        private vstsProjectId: string;
+        private repositories: any[];
 
         private webContext: WebContext;
         private extensionData: IExtensionDataService;
         private Q: any;
+        private tfsCoreRestClient: any;
         private tfvcRestClient: any;
         private gitRestClient: any;
+        private VssControls: any;
+        private VssSplitter: any;
 
-        private allCheckins: any[];
+        private isGitRepository: boolean;
+
+        private splitter: any;
+
+        private currentDays: Date[] = [];
 
         static $inject = ['$http', '$scope', 'Base64'];
         constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private Base64: any) {
             this.loginForm = <ILoginForm>{};
-            this.timesheetForm = <ITimesheetForm>{};
             this.loading = <ILoading>{
                 page: true
             };
             this.error = <IError>{};
-
-            this.allCheckins = [
-                {
-                    title: "One"
-                },
-                {
-                    title: "Two"
-                },
-                {
-                    title: "Three"
-                }
-            ];
 
             VSS.init({
                 usePlatformScripts: true
@@ -99,10 +74,14 @@
 
             // Wait for the SDK to be initialized
             VSS.ready(() => {
-                require(["q", "TFS/VersionControl/TfvcRestClient", "TFS/VersionControl/GitRestClient"], (Q, TfvcRestClient, GitRestClient) => {
+                require(["q","TFS/Core/RestClient", "TFS/VersionControl/TfvcRestClient", "TFS/VersionControl/GitRestClient", "VSS/Controls", "VSS/Controls/Splitter"], (Q, TfsCoreRestClient, TfvcRestClient, GitRestClient, Controls, Splitter) => {
                     this.Q = Q;
+                    this.tfsCoreRestClient = TfsCoreRestClient.getClient();
                     this.tfvcRestClient = TfvcRestClient.getClient();
                     this.gitRestClient = GitRestClient.getClient();
+                    this.VssControls = Controls;
+                    this.VssSplitter = Splitter;
+
                     this.Q.all([VSS.getService(VSS.ServiceIds.ExtensionData)])
                         .spread((dataService: IExtensionDataService) => {
                             this.extensionData = dataService;
@@ -116,16 +95,32 @@
 
         init() {
             this.$scope.$apply(() => {
-                this.timesheetDate = moment().toDate();
+                this.splitter = this.VssControls.Enhancement.enhance(this.VssSplitter.Splitter, $(".my-splitter"), { initialSize: 350 });
+                this.splitter.collapse();
                 this.loading.page = true;
                 this.webContext = VSS.getWebContext();
-                this.loadCheckins();
+                this.vstsProjectId = this.webContext.project.id;
+                console.log(this.webContext);
+                this.tfsCoreRestClient.getProject(this.vstsProjectId, true, false).then((data) => {
+                    console.log(data);
+                    if (data.capabilities.versioncontrol.sourceControlType == "Git") {
+                        console.log("Detected Git Repository, loading pull request data.");
+                        this.isGitRepository = true;
+                    } else {
+                        console.log("Could not find git repository, falling back to TFVC - Loading Checkin data.");
+                        this.isGitRepository = false;
+                    }
+                });
+                this.gitRestClient.getRepositories(this.vstsProjectId).then(data => {
+                    this.repositories = data;
+                });
+
             });
             this.Q.all([
                     this.extensionData.getValue(TimesheetHubController.API_KEY),
                     this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID, { scopeType: "User" }),
                     this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME),
-                    this.extensionData.getValue("ProjectID-" + this.webContext.project.id, { scopeType: "User" })
+                    this.extensionData.getValue("ProjectID-" + this.vstsProjectId, { scopeType: "User" })
                 ])
                 .spread((apiKey, userId, accountName, projectId) => {
 
@@ -147,10 +142,15 @@
                             this.loggedIn = false;
                         }
 
+                        if (!projectId) {
+                            this.splitter.expand();
+                        }
+
                         var authdata = this.Base64.encode(this.apiKey + ':');
                         this.$http.defaults.headers.common['Authorization'] = 'Basic ' + authdata;
 
-                        this.loadTimesheet();
+                        this.changeDay(0);
+
                         this.loading.page = false;
                     });
                 }, (error) => {
@@ -159,86 +159,29 @@
                 });
         }
 
-        loadTimesheet() {
-            this.existingTimesheet = null;
-            this.timesheetForm = <ITimesheetForm>{};
-
-            this.$http.get(this.getApiUri("Timesheets/SingleTimesheet?empId=" + this.currentUserId + "&projectId=" + this.projectId + "&timesheetDate=" + moment(this.timesheetDate).format("YYYY-MM-DD")))
-                .success((data: ITimesheet) => {
-                    console.log("Found timesheet for currentDate");
-                    this.existingTimesheet = data;
-                    this.timesheetForm.Hours = data.BillableHours;
-                    this.timesheetForm.Notes = data.Note;
-
-                    this.updateActiveCheckins();
-                })
-                .error((error) => {
-                    console.log("No timesheet found for currentDate or there was an error");
-                    console.log(error);
-                });
+        expand() {
+            this.splitter.expand();
         }
 
-        loadCheckins() {
-            //this.gitRestClient.getPullRequestsByProject(this.webContext.project.id)
-            //    .then((data) => {
-            //        this.$scope.$apply(() => {
-            //            this.allCheckins = data;
-            //        });
-            //    });
-            this.loading.checkins = true;
-            this.allCheckins = [];
-
-            this.tfvcRestClient.getChangesets(this.webContext.project.id, null, null, true, null, null, null, null, null, { fromDate: moment(this.timesheetDate).format("YYYY-MM-DD"), toDate: moment(this.timesheetDate).add(1, "day").format("YYYY-MM-DD") })
-                .then((data) => {
-                    var promiseList = [];
-                    var i = 0;
-                    for (i = 0; i < data.length; i++) {
-                        promiseList.push(this.tfvcRestClient.getChangesetWorkItems(data[i].changesetId));
-                    }
-                    this.Q.all(promiseList).then((values) => {
-                        this.$scope.$apply(() => {
-                            var w = 0;
-                            for (w = 0; w < values.length; w++) {
-                                data[w].workItems = values[w];
-                            }
-                            this.allCheckins = data;
-                            this.updateActiveCheckins();
-                            this.loading.checkins = false;
-                        });
-                    });
-                });
-        }
-
-        updateActiveCheckins() {
-            var i = 0;
-            var c = 0;
-            var w = 0;
-            var w2 = 0;
-
-            if (!this.existingTimesheet || !this.allCheckins) {
-                return;
-            }
-
-            for (i = 0; i < this.allCheckins.length; i++) {
-                for (c = 0; c < this.existingTimesheet.CheckinIds.length; c++) {
-                    if (this.allCheckins[i].changesetId == this.existingTimesheet.CheckinIds[c]) {
-                        this.allCheckins[i].active = true;
-                    }
-                }
-                for (w = 0; w < this.allCheckins[i].workItems.length; w++) {
-                    for (w2 = 0; w2 < this.existingTimesheet.WorkItemIds.length; w2++) {
-                        if (this.allCheckins[i].workItems[w].id == this.existingTimesheet.WorkItemIds[w2]) {
-                            this.allCheckins[i].workItems[w].active = true;
-                        }
-                    }
-                }
-            }
+        collapse() {
+            this.splitter.collapse();
         }
 
         changeDay(days) {
-            this.timesheetDate = moment(this.timesheetDate).add(days, "day").toDate();
-            this.loadCheckins();
-            this.loadTimesheet();
+            var currentDate = this.currentDays[0] || moment().toDate();
+
+            var monday = moment(currentDate).startOf("week").add(1, "day").add(days, "week");
+            this.currentDays = [
+                monday.toDate(),
+                monday.clone().add(1, "day").toDate(),
+                monday.clone().add(2, "day").toDate(),
+                monday.clone().add(3, "day").toDate(),
+                monday.clone().add(4, "day").toDate()
+            ];
+
+            //this.timesheetDate = moment(this.timesheetDate).add(days, "day").toDate();
+            //this.loadCheckinsOrCommits();
+            //this.loadTimesheet();
         }
 
         login() {
@@ -260,69 +203,13 @@
                     this.loading.login = false;
                     this.loggedIn = true;
 
-                    this.changeDay(0);
+                    //this.changeDay(0);
                 })
                 .error((error) => {
                     console.log("Error");
                     console.log(error);
                     this.loading.login = false;
                     this.error.login = true;
-                });
-        }
-
-        getApiUri(relativeUri) {
-            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
-        }
-
-        toggleActive(item) {
-            item.active = !item.active;
-
-            if (item.workItems && item.workItems.length > 0) {
-                for (var i = 0; i < item.workItems.length; i++) {
-                    item.workItems[i].active = item.active;
-                }
-            }
-        }
-
-        saveTimesheet() {
-            var i = 0;
-            var k = 0;
-            this.loading.save = true;
-            var postData = this.timesheetForm;
-
-            postData.EmpID = this.currentUserId;
-            postData.ProjectID = this.projectId;
-            postData.TimesheetDate = moment(this.timesheetDate).format("YYYY-MM-DD");
-
-            var checkinIds = [];
-            var workItemIds = [];
-            for (i = 0; i < this.allCheckins.length; i++) {
-                if (this.allCheckins[i].active) {
-                    checkinIds.push(this.allCheckins[i].changesetId);
-                }
-
-                for (k = 0; k < this.allCheckins[i].workItems.length; k++) {
-                    if (this.allCheckins[i].workItems[k].active) {
-                        workItemIds.push(this.allCheckins[i].workItems[k].id);
-                    }
-                }
-            }
-            postData.ChangesetIds = checkinIds;
-            postData.WorkItemIds = workItemIds;
-
-            if (this.existingTimesheet) {
-                postData.TimesheetID = this.existingTimesheet.TimesheetID;
-            }
-
-            this.$http.post(this.getApiUri("Timesheets/QuickCreate"), postData)
-                .success((data: ITimesheet) => {
-                    this.existingTimesheet = data;
-                    this.loading.save = false;
-                })
-                .error((error) => {
-                    console.log("Error saving timesheet");
-                    console.log(error);
-                    this.loading.save = false;
                 });
         }
 
@@ -336,6 +223,11 @@
                 this.init(); // Init assumes no scope
             });
         }
+
+        getApiUri(relativeUri) {
+            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
+        }
+
     }
 
     angular.module('TimesheetHub', [])
