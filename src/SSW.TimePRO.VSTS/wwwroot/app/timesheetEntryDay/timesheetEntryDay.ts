@@ -119,7 +119,14 @@
                         console.log(`Found timesheet for ${moment(this.timesheetDate).format('YYYY-MM-DD')}`);
                         this.existingTimesheet = data;
                         this.timesheetForm.Hours = data.BillableHours;
-                        this.timesheetForm.Notes = data.Note;
+
+                        // Remove existing auto-generated notes
+                        data.Note = data.Note || "";
+                        var notesIndex = data.Note.indexOf("~~~");
+                        if (notesIndex > -1) {
+                            data.Note = data.Note.substring(0, notesIndex);
+                        }
+                        this.timesheetForm.Notes = data.Note.trim();
                     }
 
                     this.updateActiveCheckins();
@@ -141,6 +148,8 @@
             }
 
             for (i = 0; i < this.allCheckins.length; i++) {
+                this.allCheckins[i].active = false;
+
                 var typeId = 0;
                 if (this.allCheckins[i].type == "changeset") {
                     typeId = 1;
@@ -222,11 +231,18 @@
                     }
                     this.q.all(promiseList).then((values) => {
                         this.$scope.$apply(() => {
+                            console.log(values);
                             var w = 0;
                             for (w = 0; w < values.length; w++) {
-                                checkinList[w].workItems = values[w];
                                 checkinList[w].comment = checkinList[w].title;
                                 checkinList[w].createdDate = checkinList[w].creationDate;
+                                checkinList[w].active = true;
+
+                                checkinList[w].workItems = [];
+                                _(values[w]).forEach(workitem => {
+                                    workitem.active = true;
+                                    checkinList[w].workItems.push(workitem);
+                                });
                             }
                             _(checkinList).forEach(x => this.allCheckins.push(x));                            
                             this.updateActiveCheckins();
@@ -238,13 +254,13 @@
 
             _(this.gitRepositories).forEach(repo => {
                 this.gitRestClient.getCommits(repo.id, { fromDate: moment(this.timesheetDate).format("YYYY-MM-DD"), toDate: moment(this.timesheetDate).add(1, 'day').format("YYYY-MM-DD") }).then(data => {
-                    console.log(data);
                     _(data).forEach(commit => {
                         var checkin = <ICheckin>{
                             type: "commit",
                             changesetId: commit.commitId,
                             comment: commit.comment + (commit.commentTruncated ? "..." : ""),
-                            createdDate: commit.author.date
+                            createdDate: commit.author.date,
+                            active: true
                         };
 
                         // Remove commits that starts with "merge"
@@ -261,11 +277,14 @@
             var i = 0;
             var k = 0;
             this.loading.save = true;
-            var postData = this.timesheetForm;
+            var postData = <ITimesheetForm>JSON.parse(JSON.stringify(this.timesheetForm));
 
             postData.EmpID = this.currentUserId;
             postData.ProjectID = this.projectId;
             postData.TimesheetDate = moment(this.timesheetDate).format("YYYY-MM-DD");
+
+            // Add auto-generated notes
+            postData.Notes += "\n\n~~~\n";
 
             var associations: ITimesheetAssociation[] = [];
             
@@ -274,25 +293,27 @@
                     var typeId = 0;
                     if (this.allCheckins[i].type == "changeset") {
                         typeId = 1;
-                    }
-                    else if (this.allCheckins[i].type == "commit") {
+                    } else if (this.allCheckins[i].type == "commit") {
                         typeId = 3;
-                    }
-                    else if (this.allCheckins[i].type == "pullrequest") {
+                    } else if (this.allCheckins[i].type == "pullrequest") {
                         typeId = 4;
                     }
                     associations.push({
                         ExternalId: this.allCheckins[i].changesetId,
                         Type: typeId
                     });
-                }
-                if (this.allCheckins[i].workItems) {
-                    for (k = 0; k < this.allCheckins[i].workItems.length; k++) {
-                        if (this.allCheckins[i].workItems[k].active) {
-                            associations.push({
-                                ExternalId: this.allCheckins[i].workItems[k].id,
-                                Type: 2 // WorkItem
-                            });
+                    postData.Notes += this.allCheckins[i].comment + "\n";
+
+                    if (this.allCheckins[i].workItems) {
+                        for (k = 0; k < this.allCheckins[i].workItems.length; k++) {
+                            if (this.allCheckins[i].workItems[k].active) {
+                                associations.push({
+                                    ExternalId: this.allCheckins[i].workItems[k].id,
+                                    Type: 2 // WorkItem
+                                });
+                                // TODO: Implement the below, once the work items endpoint is fixed by the VSTS team.
+                                //postData.Notes += this.allCheckins[i].workItems[k].title + "\n";
+                            }
                         }
                     }
                 }
@@ -326,8 +347,7 @@
         }
 
         getApiUri(relativeUri) {
-            //return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
-            return "https://" + this.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
+            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
         }
     }
 

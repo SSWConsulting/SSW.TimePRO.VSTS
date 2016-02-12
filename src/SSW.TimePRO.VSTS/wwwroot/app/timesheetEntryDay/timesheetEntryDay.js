@@ -58,7 +58,13 @@ var TimesheetEntryDay;
                     console.log("Found timesheet for " + moment(_this.timesheetDate).format('YYYY-MM-DD'));
                     _this.existingTimesheet = data;
                     _this.timesheetForm.Hours = data.BillableHours;
-                    _this.timesheetForm.Notes = data.Note;
+                    // Remove existing auto-generated notes
+                    data.Note = data.Note || "";
+                    var notesIndex = data.Note.indexOf("~~~");
+                    if (notesIndex > -1) {
+                        data.Note = data.Note.substring(0, notesIndex);
+                    }
+                    _this.timesheetForm.Notes = data.Note.trim();
                 }
                 _this.updateActiveCheckins();
             })
@@ -76,6 +82,7 @@ var TimesheetEntryDay;
                 return;
             }
             for (i = 0; i < this.allCheckins.length; i++) {
+                this.allCheckins[i].active = false;
                 var typeId = 0;
                 if (this.allCheckins[i].type == "changeset") {
                     typeId = 1;
@@ -154,11 +161,17 @@ var TimesheetEntryDay;
                 }
                 _this.q.all(promiseList).then(function (values) {
                     _this.$scope.$apply(function () {
+                        console.log(values);
                         var w = 0;
                         for (w = 0; w < values.length; w++) {
-                            checkinList[w].workItems = values[w];
                             checkinList[w].comment = checkinList[w].title;
                             checkinList[w].createdDate = checkinList[w].creationDate;
+                            checkinList[w].active = true;
+                            checkinList[w].workItems = [];
+                            _(values[w]).forEach(function (workitem) {
+                                workitem.active = true;
+                                checkinList[w].workItems.push(workitem);
+                            });
                         }
                         _(checkinList).forEach(function (x) { return _this.allCheckins.push(x); });
                         _this.updateActiveCheckins();
@@ -168,13 +181,13 @@ var TimesheetEntryDay;
             });
             _(this.gitRepositories).forEach(function (repo) {
                 _this.gitRestClient.getCommits(repo.id, { fromDate: moment(_this.timesheetDate).format("YYYY-MM-DD"), toDate: moment(_this.timesheetDate).add(1, 'day').format("YYYY-MM-DD") }).then(function (data) {
-                    console.log(data);
                     _(data).forEach(function (commit) {
                         var checkin = {
                             type: "commit",
                             changesetId: commit.commitId,
                             comment: commit.comment + (commit.commentTruncated ? "..." : ""),
-                            createdDate: commit.author.date
+                            createdDate: commit.author.date,
+                            active: true
                         };
                         // Remove commits that starts with "merge"
                         if (checkin.comment.toLowerCase().lastIndexOf("merge", 0) !== 0) {
@@ -189,10 +202,12 @@ var TimesheetEntryDay;
             var i = 0;
             var k = 0;
             this.loading.save = true;
-            var postData = this.timesheetForm;
+            var postData = JSON.parse(JSON.stringify(this.timesheetForm));
             postData.EmpID = this.currentUserId;
             postData.ProjectID = this.projectId;
             postData.TimesheetDate = moment(this.timesheetDate).format("YYYY-MM-DD");
+            // Add auto-generated notes
+            postData.Notes += "\n\n~~~\n";
             var associations = [];
             for (i = 0; i < this.allCheckins.length; i++) {
                 if (this.allCheckins[i].active) {
@@ -210,14 +225,15 @@ var TimesheetEntryDay;
                         ExternalId: this.allCheckins[i].changesetId,
                         Type: typeId
                     });
-                }
-                if (this.allCheckins[i].workItems) {
-                    for (k = 0; k < this.allCheckins[i].workItems.length; k++) {
-                        if (this.allCheckins[i].workItems[k].active) {
-                            associations.push({
-                                ExternalId: this.allCheckins[i].workItems[k].id,
-                                Type: 2 // WorkItem
-                            });
+                    postData.Notes += this.allCheckins[i].comment + "\n";
+                    if (this.allCheckins[i].workItems) {
+                        for (k = 0; k < this.allCheckins[i].workItems.length; k++) {
+                            if (this.allCheckins[i].workItems[k].active) {
+                                associations.push({
+                                    ExternalId: this.allCheckins[i].workItems[k].id,
+                                    Type: 2 // WorkItem
+                                });
+                            }
                         }
                     }
                 }
@@ -246,8 +262,7 @@ var TimesheetEntryDay;
             }
         };
         TimesheetEntryDayController.prototype.getApiUri = function (relativeUri) {
-            //return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
-            return "https://" + this.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
+            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
         };
         return TimesheetEntryDayController;
     })();

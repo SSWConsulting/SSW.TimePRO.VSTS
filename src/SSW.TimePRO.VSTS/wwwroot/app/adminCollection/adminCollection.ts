@@ -115,8 +115,7 @@ module AdminCollection {
         }
 
         getApiUri(relativeUri) {
-            //return "https://" + this.loginForm.accountName + ".sswtimepro.com/api/" + relativeUri;
-            return "https://" + this.loginForm.accountName + ".sswtimeprolocal.com/api/" + relativeUri;
+            return "https://" + this.loginForm.accountName + ".sswtimepro.com/api/" + relativeUri;
         }
 
         disconnect() {

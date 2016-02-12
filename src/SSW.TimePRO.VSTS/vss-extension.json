@@ -80,19 +80,6 @@
       }
     },
     {
-      "id": "ssw-timepro-project-settings",
-      "type": "ms.vss-web.hub",
-      "description": "The default hub for the TimePRO hub group.",
-      "targets": [
-        ".ssw-timepro-hub-group"
-      ],
-      "properties": {
-        "name": "Project Settings",
-        "order": 100,
-        "uri": "app/projectSettingsHub/projectSettingsHub.html"
-      }
-    },
-    {
       "id": "ssw-timepro-collection-admin-hub",
       "type": "ms.vss-web.hub",
       "targets": [

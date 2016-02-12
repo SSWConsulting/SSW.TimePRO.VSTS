@@ -49,7 +49,7 @@
                         </p>
                     </div>
                 </a>
-                <a class="list-group-item" ng-repeat-end ng-repeat="workItem in item.workItems" ng-click="vm.toggleActive(workItem)" style="margin-left: 20px;">
+                <a class="list-group-item" ng-repeat-end ng-if="item.type == 'changeset'" ng-repeat="workItem in item.workItems" ng-click="vm.toggleActive(workItem)" style="margin-left: 20px;">
                     <div class="checkbox checkbox-primary pull-left">
                         <input type="checkbox" ng-checked="workItem.active">
                         <label></label>
