@@ -1,10 +1,11 @@
 ﻿{
   "manifestVersion": 1,
   "id": "sswtimepro",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "name": "SSW TimePRO",
-  "baseUri": "https://localhost:44387/",
-  "publisher": "bencull",
+  "baseUri": "https://timepro-vsts.azurewebsites.net/",
+  "publisher": "sswtv",
+  "public": true,
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"
