@@ -1,8 +1,8 @@
 ﻿<div>
     <h3>{{vm.timesheetDate | date: 'EEE, d MMMM yyyy'}}</h3>
 
-    <p class="text-danger" ng-if="!vm.existingTimesheet">No timesheet for today</p>
-    <p class="text-success" ng-if="vm.existingTimesheet">Timesheet complete</p>
+    <!--<p class="text-danger" ng-if="!vm.existingTimesheet">No timesheet for today</p>
+    <p class="text-success" ng-if="vm.existingTimesheet">Timesheet complete</p>-->
 
     <div class="form-group">
         <label>Hours</label>
@@ -15,7 +15,8 @@
     </div>
 
     <div class="form-group">
-        <button type="button" class="btn btn-primary btn-block" loading-button="vm.loading.save" ng-click="vm.saveTimesheet()">Save Timesheet</button>
+        <button ng-if="!vm.existingTimesheet" type="button" class="btn btn-primary btn-block" loading-button="vm.loading.save" ng-click="vm.saveTimesheet()">Add Timesheet</button>        
+        <button ng-if="vm.existingTimesheet" type="button" class="btn btn-success btn-block" loading-button="vm.loading.save" ng-click="vm.saveTimesheet()">Update Timesheet</button>
     </div>
 
     <div class="form-group">

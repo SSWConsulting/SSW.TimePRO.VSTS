@@ -60,8 +60,8 @@ module TimesheetHub {
 
         private currentDays: Date[] = [];
 
-        static $inject = ['$http', '$scope', 'Base64'];
-        constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private Base64: any) {
+        static $inject = ['$http', '$scope', 'Base64', 'timeproApi'];
+        constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private Base64: any, private timeproApi: TimeproApi.timeproApi) {
             this.loginForm = <ILoginForm>{};
             this.loading = <ILoading>{
                 page: true
@@ -188,26 +188,13 @@ module TimesheetHub {
             this.loading.login = true;
             this.error.login = false;
 
-            var requestData = {
-                email: this.loginForm.username,
-                password: this.loginForm.password
-            };
-
-            this.$http.post(this.getApiUri("Authorization"), requestData)
-                .success((data: IAuthorizationResponse) => {
-                    console.log("Success");
-                    console.log(data);
-
+            this.timeproApi.authorize(this.accountName, this.loginForm.username, this.loginForm.password)
+                .then(data => {
                     this.extensionData.setValue(TimesheetHubController.CURRENT_USER_ID, data.EmpID, { scopeType: "User" });
                     this.currentUserId = data.EmpID;
                     this.loading.login = false;
                     this.loggedIn = true;
-
-                    //this.changeDay(0);
-                })
-                .error((error) => {
-                    console.log("Error");
-                    console.log(error);
+                }, error => {
                     this.loading.login = false;
                     this.error.login = true;
                 });
@@ -223,11 +210,6 @@ module TimesheetHub {
                 this.init(); // Init assumes no scope
             });
         }
-
-        getApiUri(relativeUri) {
-            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
-        }
-
     }
 
     angular.module('TimesheetHub', [])

@@ -1,9 +1,13 @@
-﻿html {
+﻿/* SSW Override of Colours */
+html {
   height: 100%;
 }
 body {
   overflow: auto !important;
   height: 100%;
+}
+button.btn {
+  height: auto;
 }
 .full-height {
   height: 100%;

@@ -2,11 +2,12 @@
 var TimesheetHub;
 (function (TimesheetHub) {
     var TimesheetHubController = (function () {
-        function TimesheetHubController($http, $scope, Base64) {
+        function TimesheetHubController($http, $scope, Base64, timeproApi) {
             var _this = this;
             this.$http = $http;
             this.$scope = $scope;
             this.Base64 = Base64;
+            this.timeproApi = timeproApi;
             this.currentDays = [];
             this.loginForm = {};
             this.loading = {
@@ -134,23 +135,13 @@ var TimesheetHub;
             var _this = this;
             this.loading.login = true;
             this.error.login = false;
-            var requestData = {
-                email: this.loginForm.username,
-                password: this.loginForm.password
-            };
-            this.$http.post(this.getApiUri("Authorization"), requestData)
-                .success(function (data) {
-                console.log("Success");
-                console.log(data);
+            this.timeproApi.authorize(this.accountName, this.loginForm.username, this.loginForm.password)
+                .then(function (data) {
                 _this.extensionData.setValue(TimesheetHubController.CURRENT_USER_ID, data.EmpID, { scopeType: "User" });
                 _this.currentUserId = data.EmpID;
                 _this.loading.login = false;
                 _this.loggedIn = true;
-                //this.changeDay(0);
-            })
-                .error(function (error) {
-                console.log("Error");
-                console.log(error);
+            }, function (error) {
                 _this.loading.login = false;
                 _this.error.login = true;
             });
@@ -165,10 +156,7 @@ var TimesheetHub;
                 _this.init(); // Init assumes no scope
             });
         };
-        TimesheetHubController.prototype.getApiUri = function (relativeUri) {
-            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
-        };
-        TimesheetHubController.$inject = ['$http', '$scope', 'Base64'];
+        TimesheetHubController.$inject = ['$http', '$scope', 'Base64', 'timeproApi'];
         return TimesheetHubController;
     })();
     angular.module('TimesheetHub', [])

@@ -1,12 +1,13 @@
 var ProjectSettingsHub;
 (function (ProjectSettingsHub) {
     var ProjectSettingsHubController = (function () {
-        function ProjectSettingsHubController($http, $scope, Base64, $timeout) {
+        function ProjectSettingsHubController($http, $scope, Base64, $timeout, timeproApi) {
             var _this = this;
             this.$http = $http;
             this.$scope = $scope;
             this.Base64 = Base64;
             this.$timeout = $timeout;
+            this.timeproApi = timeproApi;
             this.settingsForm = {};
             this.error = {};
             this.success = {};
@@ -57,13 +58,15 @@ var ProjectSettingsHub;
             this.Q.all([
                 this.extensionData.getValue(ProjectSettingsHubController.API_KEY),
                 this.extensionData.getValue(ProjectSettingsHubController.ACCOUNT_NAME),
-                this.extensionData.getValue("ProjectID-" + this.webContext.project.id, { scopeType: "User" })
+                this.extensionData.getValue("ProjectID-" + this.webContext.project.id, { scopeType: "User" }),
+                this.extensionData.getValue("ProjectName-" + this.webContext.project.id, { scopeType: "User" })
             ])
-                .spread(function (apiKey, accountName, projectId) {
+                .spread(function (apiKey, accountName, projectId, projectName) {
                 _this.$scope.$apply(function () {
                     _this.apiKey = apiKey;
                     _this.accountName = accountName;
                     _this.settingsForm.projectId = projectId;
+                    _this.settingsForm.projectName = projectName;
                     if (apiKey && accountName) {
                         _this.loggedIn = true;
                         _this.configured = true;
@@ -88,20 +91,18 @@ var ProjectSettingsHub;
             });
         };
         ProjectSettingsHubController.prototype.selectProject = function (index) {
-            console.log(index);
             this.settingsForm.projectId = this.projects[index].ProjectID;
-            console.log(this.settingsForm.projectId);
+            this.settingsForm.projectName = this.projects[index].ProjectName;
         };
         ProjectSettingsHubController.prototype.editProject = function () {
             this.mode.editProject = true;
             this.getProjects();
         };
         ProjectSettingsHubController.prototype.getProjects = function () {
-            //this.projects = JSON.parse('[{ "ProjectID": "Comp", "ClientID": "3OAL23", "ContactID": 565390714, "ProjectName": "Consulting", "StatusPct": null, "EmpID": null, "QuotedStartDate": null, "QuotedEndDate": null, "ActualStartDate": null, "ActualEndDate": null, "QuotedHrs": null, "QuotedAmt": null, "ActualHrs": null, "ActualAmt": null, "CategoryID": null, "Address": null, "Suburb": null, "State": null, "Postcode": null, "Country": null, "Period": null, "DebtorID": null, "DebtorContactID": null, "TypeID": "GC", "BudgetEng": null, "BudgetDraf": null, "ActualAmtInvoiced": 0.00000, "zzAmtLastInvoiced": null, "zzDateLastInvoiced": null, "ProjectFeeID": null, "DateCreated": "2003-11-14T14:04:00", "DateUpdated": "2003-11-14T14:04:57", "EmpUpdated": "Tim Fletcher/TimFletcher/CHEETAH", "Note": null, "rowguid": "a7cd2f26-c11e-40bf-9655-99a6dc6a8c66", "ProjectCost": null, "ProjectRate": null, "AuthorizedHours": null, "AuthorizedAmt": null, "TFSProjectName": null, "SharePointURL": null, "TFSURL": null, "CRMProjectGUID": null, "ScrumMaster": null, "Technologies": null }, { "ProjectID": "IJSODF", "ClientID": "DONTW", "ContactID": 7899, "ProjectName": "General Consulting", "StatusPct": null, "EmpID": null, "QuotedStartDate": null, "QuotedEndDate": null, "ActualStartDate": null, "ActualEndDate": null, "QuotedHrs": null, "QuotedAmt": null, "ActualHrs": null, "ActualAmt": null, "CategoryID": null, "Address": null, "Suburb": null, "State": null, "Postcode": null, "Country": null, "Period": null, "DebtorID": null, "DebtorContactID": null, "TypeID": "GC", "BudgetEng": null, "BudgetDraf": null, "ActualAmtInvoiced": 0.00000, "zzAmtLastInvoiced": null, "zzDateLastInvoiced": null, "ProjectFeeID": null, "DateCreated": "2004-02-16T10:19:16", "DateUpdated": "2004-02-16T10:19:47", "EmpUpdated": "Peter Huang/PeterHuang/WOMBAT", "Note": null, "rowguid": "9409182d-bf35-49f9-943c-0bf977396d76", "ProjectCost": null, "ProjectRate": null, "AuthorizedHours": null, "AuthorizedAmt": null, "TFSProjectName": null, "SharePointURL": null, "TFSURL": null, "CRMProjectGUID": null, "ScrumMaster": null, "Technologies": null }, { "ProjectID": "DOWKD", "ClientID": "GUDCNT", "ContactID": 348648449, "ProjectName": "Proposal", "StatusPct": null, "EmpID": "TF", "QuotedStartDate": null, "QuotedEndDate": null, "ActualStartDate": null, "ActualEndDate": null, "QuotedHrs": null, "QuotedAmt": null, "ActualHrs": null, "ActualAmt": null, "CategoryID": null, "Address": null, "Suburb": null, "State": null, "Postcode": null, "Country": null, "Period": null, "DebtorID": null, "DebtorContactID": null, "TypeID": null, "BudgetEng": null, "BudgetDraf": null, "ActualAmtInvoiced": 0.00000, "zzAmtLastInvoiced": null, "zzDateLastInvoiced": null, "ProjectFeeID": null, "DateCreated": "2004-02-16T10:13:14", "DateUpdated": "2004-02-16T10:16:14", "EmpUpdated": "Peter Huang/PeterHuang/WOMBAT", "Note": null, "rowguid": "421f304d-b8d9-48f1-ba2f-8a0053c53959", "ProjectCost": null, "ProjectRate": null, "AuthorizedHours": null, "AuthorizedAmt": null, "TFSProjectName": null, "SharePointURL": null, "TFSURL": null, "CRMProjectGUID": null, "ScrumMaster": null, "Technologies": null }, { "ProjectID": "SSWA23", "ClientID": "SSW", "ContactID": 1239335681, "ProjectName": "zzSSW ASP NET 2 0 Migration Sprint 003", "StatusPct": null, "EmpID": "PA", "QuotedStartDate": null, "QuotedEndDate": null, "ActualStartDate": null, "ActualEndDate": null, "QuotedHrs": null, "QuotedAmt": null, "ActualHrs": null, "ActualAmt": null, "CategoryID": null, "Address": null, "Suburb": null, "State": null, "Postcode": null, "Country": null, "Period": null, "DebtorID": null, "DebtorContactID": null, "TypeID": null, "BudgetEng": null, "BudgetDraf": null, "ActualAmtInvoiced": 0.00000, "zzAmtLastInvoiced": null, "zzDateLastInvoiced": null, "ProjectFeeID": null, "DateCreated": "2006-02-17T18:25:44.193", "DateUpdated": "2012-09-26T11:41:00", "EmpUpdated": "CRM/Ulysses Maclaren", "Note": null, "rowguid": "16e9c00b-d5ae-4b7d-a207-9c444e646e14", "ProjectCost": null, "ProjectRate": null, "AuthorizedHours": null, "AuthorizedAmt": null, "TFSProjectName": null, "SharePointURL": null, "TFSURL": null, "CRMProjectGUID": null, "ScrumMaster": null, "Technologies": null }, { "ProjectID": "retra", "ClientID": "RETRA0", "ContactID": -939413759, "ProjectName": "General", "StatusPct": null, "EmpID": "DH", "QuotedStartDate": null, "QuotedEndDate": null, "ActualStartDate": null, "ActualEndDate": null, "QuotedHrs": null, "QuotedAmt": null, "ActualHrs": null, "ActualAmt": null, "CategoryID": "<ALL>", "Address": null, "Suburb": null, "State": null, "Postcode": null, "Country": null, "Period": null, "DebtorID": null, "DebtorContactID": null, "TypeID": "WEBSQL", "BudgetEng": null, "BudgetDraf": null, "ActualAmtInvoiced": 0.00000, "zzAmtLastInvoiced": null, "zzDateLastInvoiced": null, "ProjectFeeID": null, "DateCreated": "2004-12-10T17:57:51", "DateUpdated": "2004-12-10T18:17:08", "EmpUpdated": "Daniel Hyles/danielhyles/PEACOCK", "Note": null, "rowguid": "184d8c6b-0529-4790-810f-9cdd083f039c", "ProjectCost": null, "ProjectRate": null, "AuthorizedHours": null, "AuthorizedAmt": null, "TFSProjectName": null, "SharePointURL": null, "TFSURL": null, "CRMProjectGUID": null, "ScrumMaster": null, "Technologies": null }]');
             var _this = this;
             this.loading.projects = true;
-            this.$http.get(this.getApiUri("Projects"))
-                .success(function (data) {
+            this.timeproApi.getAllProjects(this.accountName)
+                .then(function (data) {
                 _this.loading.projects = false;
                 _this.$timeout(function () {
                     _this.renderCombo();
@@ -109,10 +110,7 @@ var ProjectSettingsHub;
                     var names = _(_this.projects).map(function (x) { return x.ProjectName; }).value();
                     _this.combo.setSource(names);
                 }, 0);
-            })
-                .error(function (error) {
-                console.log("Error");
-                console.log(error);
+            }, function (error) {
                 _this.loading.projects = false;
             });
         };
@@ -137,27 +135,20 @@ var ProjectSettingsHub;
             this.loading.save = true;
             this.error.save = false;
             this.success.save = false;
-            this.$http.get(this.getApiUri("Projects/" + this.settingsForm.projectId))
-                .success(function (data) {
-                console.log("Success");
-                console.log(data);
+            this.timeproApi.getProject(this.accountName, this.settingsForm.projectId)
+                .then(function (data) {
                 _this.extensionData.setValue("ProjectID-" + _this.webContext.project.id, _this.settingsForm.projectId, { scopeType: "User" });
+                _this.extensionData.setValue("ProjectName-" + _this.webContext.project.id, _this.settingsForm.projectName, { scopeType: "User" });
                 _this.loading.save = false;
                 _this.success.save = true;
                 _this.mode.projectSelected = true;
                 _this.mode.editProject = false;
-            })
-                .error(function (error) {
-                console.log("Error");
-                console.log(error);
+            }, function (error) {
                 _this.loading.save = false;
                 _this.error.save = true;
             });
         };
-        ProjectSettingsHubController.prototype.getApiUri = function (relativeUri) {
-            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
-        };
-        ProjectSettingsHubController.$inject = ['$http', '$scope', 'Base64', '$timeout'];
+        ProjectSettingsHubController.$inject = ['$http', '$scope', 'Base64', '$timeout', 'timeproApi'];
         return ProjectSettingsHubController;
     })();
     angular.module('ProjectSettingsHub', [])
