@@ -5,7 +5,7 @@ var TimeproApi;
         function timeproApi($http, $q) {
             this.$http = $http;
             this.$q = $q;
-            this.apiBaseUri = "https://{0}.sswtimeprolocal.com/api/";
+            this.apiBaseUri = "https://{0}.sswtimepro.com/api/";
         }
         timeproApi.prototype.getApiUri = function (accountName, relativeUri) {
             return this.apiBaseUri.replace("{0}", accountName) + relativeUri;
