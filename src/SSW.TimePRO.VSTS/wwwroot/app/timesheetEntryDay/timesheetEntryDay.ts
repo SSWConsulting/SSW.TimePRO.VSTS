@@ -1,29 +1,8 @@
 ﻿module TimesheetEntryDay {
-
+    import TimesheetAssociation = TimeproApi.ITimesheetAssociation;
+    import SaveTimesheetForm = TimeproApi.ISaveTimesheetForm;
+    import Timesheet = TimeproApi.ITimesheet;
     declare var _: any;
-
-    interface ITimesheetForm {
-        TimesheetID: string;
-        EmpID: string;
-        ProjectID: string;
-        Hours: number;
-        TimesheetDate: string;
-        Notes: string;
-        AssociatedItems: ITimesheetAssociation[];
-    }
-
-    interface ITimesheetAssociation {
-        Type: number;
-        ExternalId: string;
-    }
-
-    interface ITimesheet {
-        TimesheetID: string;
-        BillableHours: number;
-        Note: string;
-        TimesheetDate: Date;
-        Associations: ITimesheetAssociation[];
-    }
 
     interface ILoading {
         timesheet: boolean;
@@ -82,9 +61,9 @@
     }
 
     class TimesheetEntryDayController {
-        private timesheetForm: ITimesheetForm = <ITimesheetForm>{};
+        private timesheetForm: SaveTimesheetForm = <SaveTimesheetForm>{};
         private timesheetDate: Date;
-        private existingTimesheet: ITimesheet;
+        private existingTimesheet: Timesheet;
         private currentUserId: string;
         private projectId: string;
         private accountName: string;
@@ -97,7 +76,7 @@
         private gitRepositories: any[];
         private q: any;
 
-        constructor(private $http: angular.IHttpService, private $scope: angular.IScope) {
+        constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private timeproApi: TimeproApi.timeproApi) {
             this.init();
         }
 
@@ -108,10 +87,16 @@
 
         loadTimesheet() {
             this.existingTimesheet = null;
-            this.timesheetForm = <ITimesheetForm>{};
+            this.timesheetForm = <SaveTimesheetForm>{
+                Hours: 8
+            };
 
-            this.$http.get(this.getApiUri("Timesheets/SingleTimesheet?empId=" + this.currentUserId + "&projectId=" + this.projectId + "&timesheetDate=" + moment(this.timesheetDate).format("YYYY-MM-DD")))
-                .success((data:any) => {
+            this.timeproApi.getTimesheet(
+                    this.accountName,
+                    this.currentUserId,
+                    this.projectId,
+                    moment(this.timesheetDate).format("YYYY-MM-DD"))
+                .then(data => {
                     if (data.noTimesheet) {
                         console.log(`No timesheet for ${moment(this.timesheetDate).format('YYYY-MM-DD')}`);
                     }
@@ -130,8 +115,7 @@
                     }
 
                     this.updateActiveCheckins();
-                })
-                .error((error) => {
+                }, error => {
                     console.log("No timesheet found for currentDate or there was an error");
                     console.log(error);
                 });
@@ -277,16 +261,17 @@
             var i = 0;
             var k = 0;
             this.loading.save = true;
-            var postData = <ITimesheetForm>JSON.parse(JSON.stringify(this.timesheetForm));
+            var postData = <SaveTimesheetForm>JSON.parse(JSON.stringify(this.timesheetForm));
 
             postData.EmpID = this.currentUserId;
             postData.ProjectID = this.projectId;
             postData.TimesheetDate = moment(this.timesheetDate).format("YYYY-MM-DD");
+            postData.Notes = postData.Notes || "";
 
             // Add auto-generated notes
             postData.Notes += "\n\n~~~\n";
 
-            var associations: ITimesheetAssociation[] = [];
+            var associations: TimesheetAssociation[] = [];
             
             for (i = 0; i < this.allCheckins.length; i++) {
                 if (this.allCheckins[i].active) {
@@ -324,14 +309,12 @@
                 postData.TimesheetID = this.existingTimesheet.TimesheetID;
             }
 
-            this.$http.post(this.getApiUri("Timesheets/QuickCreate"), postData)
-                .success((data: ITimesheet) => {
+            this.timeproApi.saveTimesheet(this.accountName, postData)
+                .then(data => {
                     this.existingTimesheet = data;
                     this.loading.save = false;
-                })
-                .error((error) => {
-                    console.log("Error saving timesheet");
-                    console.log(error);
+
+                }, error => {
                     this.loading.save = false;
                 });
         }
@@ -344,10 +327,6 @@
                     item.workItems[i].active = item.active;
                 }
             }
-        }
-
-        getApiUri(relativeUri) {
-            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
         }
     }
 

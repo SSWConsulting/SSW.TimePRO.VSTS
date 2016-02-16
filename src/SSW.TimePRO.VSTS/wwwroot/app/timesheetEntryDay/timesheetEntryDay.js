@@ -33,9 +33,10 @@ var TimesheetEntryDay;
         return TimesheetEntryDay;
     })();
     var TimesheetEntryDayController = (function () {
-        function TimesheetEntryDayController($http, $scope) {
+        function TimesheetEntryDayController($http, $scope, timeproApi) {
             this.$http = $http;
             this.$scope = $scope;
+            this.timeproApi = timeproApi;
             this.timesheetForm = {};
             this.allCheckins = [];
             this.loading = {};
@@ -48,9 +49,11 @@ var TimesheetEntryDay;
         TimesheetEntryDayController.prototype.loadTimesheet = function () {
             var _this = this;
             this.existingTimesheet = null;
-            this.timesheetForm = {};
-            this.$http.get(this.getApiUri("Timesheets/SingleTimesheet?empId=" + this.currentUserId + "&projectId=" + this.projectId + "&timesheetDate=" + moment(this.timesheetDate).format("YYYY-MM-DD")))
-                .success(function (data) {
+            this.timesheetForm = {
+                Hours: 8
+            };
+            this.timeproApi.getTimesheet(this.accountName, this.currentUserId, this.projectId, moment(this.timesheetDate).format("YYYY-MM-DD"))
+                .then(function (data) {
                 if (data.noTimesheet) {
                     console.log("No timesheet for " + moment(_this.timesheetDate).format('YYYY-MM-DD'));
                 }
@@ -67,8 +70,7 @@ var TimesheetEntryDay;
                     _this.timesheetForm.Notes = data.Note.trim();
                 }
                 _this.updateActiveCheckins();
-            })
-                .error(function (error) {
+            }, function (error) {
                 console.log("No timesheet found for currentDate or there was an error");
                 console.log(error);
             });
@@ -206,6 +208,7 @@ var TimesheetEntryDay;
             postData.EmpID = this.currentUserId;
             postData.ProjectID = this.projectId;
             postData.TimesheetDate = moment(this.timesheetDate).format("YYYY-MM-DD");
+            postData.Notes = postData.Notes || "";
             // Add auto-generated notes
             postData.Notes += "\n\n~~~\n";
             var associations = [];
@@ -242,14 +245,11 @@ var TimesheetEntryDay;
             if (this.existingTimesheet) {
                 postData.TimesheetID = this.existingTimesheet.TimesheetID;
             }
-            this.$http.post(this.getApiUri("Timesheets/QuickCreate"), postData)
-                .success(function (data) {
+            this.timeproApi.saveTimesheet(this.accountName, postData)
+                .then(function (data) {
                 _this.existingTimesheet = data;
                 _this.loading.save = false;
-            })
-                .error(function (error) {
-                console.log("Error saving timesheet");
-                console.log(error);
+            }, function (error) {
                 _this.loading.save = false;
             });
         };
@@ -260,9 +260,6 @@ var TimesheetEntryDay;
                     item.workItems[i].active = item.active;
                 }
             }
-        };
-        TimesheetEntryDayController.prototype.getApiUri = function (relativeUri) {
-            return "https://" + this.accountName + ".sswtimepro.com/api/" + relativeUri;
         };
         return TimesheetEntryDayController;
     })();

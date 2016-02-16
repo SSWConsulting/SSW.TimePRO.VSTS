@@ -7,15 +7,6 @@ module AdminCollection {
         password: string;
     }
 
-    interface IAuthorizationResponse {
-        EmpID: string;
-        Surname: string;
-        MiddleName: string;
-        FirstName: string;
-        CurrentKey: string;
-        timeProUrlID: string;
-    }
-
     interface ILoading {
         page: boolean;
         login: boolean;
@@ -37,8 +28,8 @@ module AdminCollection {
         private accountName: string;
         private Q: any;
 
-        static $inject = ['$http', '$scope'];
-        constructor(private $http: angular.IHttpService, private $scope: angular.IScope) {
+        static $inject = ['$http', '$scope', 'timeproApi'];
+        constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private timeproApi: TimeproApi.timeproApi) {
             this.loginForm = <ILoginForm>{};
             this.loading = <ILoading>{
                 page: true
@@ -90,32 +81,17 @@ module AdminCollection {
             this.loading.login = true;
             this.error.login = false;
 
-            var requestData = {
-                email: this.loginForm.username,
-                password: this.loginForm.password
-            };
-
-            this.$http.post(this.getApiUri("Authorization"), requestData)
-                .success((data: IAuthorizationResponse) => {
-                    console.log("Success");
-                    console.log(data);
-
+            this.timeproApi.authorize(this.loginForm.accountName, this.loginForm.username, this.loginForm.password)
+                .then(data => {
                     this.extensionData.setValue(AdminCollectionController.API_KEY, data.CurrentKey);
                     this.extensionData.setValue(AdminCollectionController.ACCOUNT_NAME, data.timeProUrlID);
                     this.accountName = data.timeProUrlID;
                     this.loading.login = false;
                     this.loggedIn = true;
-                })
-                .error((error) => {
-                    console.log("Error");
-                    console.log(error);
+                }, error => {
                     this.loading.login = false;
                     this.error.login = true;
                 });
-        }
-
-        getApiUri(relativeUri) {
-            return "https://" + this.loginForm.accountName + ".sswtimepro.com/api/" + relativeUri;
         }
 
         disconnect() {

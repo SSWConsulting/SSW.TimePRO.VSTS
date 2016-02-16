@@ -2,10 +2,11 @@
 var AdminCollection;
 (function (AdminCollection) {
     var AdminCollectionController = (function () {
-        function AdminCollectionController($http, $scope) {
+        function AdminCollectionController($http, $scope, timeproApi) {
             var _this = this;
             this.$http = $http;
             this.$scope = $scope;
+            this.timeproApi = timeproApi;
             this.loginForm = {};
             this.loading = {
                 page: true
@@ -63,29 +64,17 @@ var AdminCollection;
             var _this = this;
             this.loading.login = true;
             this.error.login = false;
-            var requestData = {
-                email: this.loginForm.username,
-                password: this.loginForm.password
-            };
-            this.$http.post(this.getApiUri("Authorization"), requestData)
-                .success(function (data) {
-                console.log("Success");
-                console.log(data);
+            this.timeproApi.authorize(this.loginForm.accountName, this.loginForm.username, this.loginForm.password)
+                .then(function (data) {
                 _this.extensionData.setValue(AdminCollectionController.API_KEY, data.CurrentKey);
                 _this.extensionData.setValue(AdminCollectionController.ACCOUNT_NAME, data.timeProUrlID);
                 _this.accountName = data.timeProUrlID;
                 _this.loading.login = false;
                 _this.loggedIn = true;
-            })
-                .error(function (error) {
-                console.log("Error");
-                console.log(error);
+            }, function (error) {
                 _this.loading.login = false;
                 _this.error.login = true;
             });
-        };
-        AdminCollectionController.prototype.getApiUri = function (relativeUri) {
-            return "https://" + this.loginForm.accountName + ".sswtimepro.com/api/" + relativeUri;
         };
         AdminCollectionController.prototype.disconnect = function () {
             var _this = this;
@@ -97,7 +86,7 @@ var AdminCollection;
                 _this.init(); // Init assumes no scope
             });
         };
-        AdminCollectionController.$inject = ['$http', '$scope'];
+        AdminCollectionController.$inject = ['$http', '$scope', 'timeproApi'];
         return AdminCollectionController;
     })();
     angular.module('adminCollection', [])

@@ -1,7 +1,7 @@
 ﻿{
   "manifestVersion": 1,
   "id": "sswtimepro",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "name": "SSW TimePRO",
   "baseUri": "https://timepro-vsts.azurewebsites.net/",
   "publisher": "sswtv",
