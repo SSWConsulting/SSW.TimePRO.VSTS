@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="/lib/ladda/dist/ladda-themeless.min.css" />
     <link rel="stylesheet" href="/lib/awesome-bootstrap-checkbox/awesome-bootstrap-checkbox.css" />
     <link rel="stylesheet" href="/lib/Font-Awesome/css/font-awesome.min.css" />
-    <link rel="stylesheet" href="/css/site.min.css" />
+    <link rel="stylesheet" href="/css/site.min.css"/>
+    <link rel="stylesheet" href="/css/sweet-alert.min.css"/>
 
     <script type="text/javascript">
         var appInsights = window.appInsights || function (config) {
@@ -124,7 +125,15 @@
         <div class="handleBar"></div>
         <div class="rightPane" ng-controller="TimesheetHubController as vm">
             <div class="container-fluid full-height">
-                <div class="hub-title hub-title-custom" title="">Timesheets</div>
+                <div class="hub-title hub-title-custom" title="">
+                    <span>Timesheets</span>
+                </div>
+                <div class="logo-wrapper">
+                    <a href="https://www.ssw.com.au" target="_blank">
+                        <img src="/images/ssw-logo.png" height="50" class="pull-right" />
+                    </a>
+                    <p class="text-right"><a href="https://rules.ssw.com.au/rules-to-better-timesheets" target="_blank">Rules to Better Timesheets</a></p>
+                </div>
                 <div class="hub-content-custom full-height hub-content-custom-scrolling">
                     <div class="row" ng-if="!vm.loading.page && !vm.configured">
                         <div class="col-sm-12">
@@ -199,7 +208,7 @@
                             </div>
                         </div>
                         <div class="" ng-if="vm.loggedIn" ng-cloak>
-                            <div class="col-sm-5ths" ng-repeat="day in vm.currentDays">
+                            <div class="col-sm-12 col-md-5ths" ng-repeat="day in vm.currentDays">
                                 <timesheet-entry-day
                                     timesheet-date="day"
                                     current-user-id="vm.currentUserId"

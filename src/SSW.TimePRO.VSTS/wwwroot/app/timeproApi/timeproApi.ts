@@ -34,7 +34,7 @@ module TimeproApi {
     }
 
     export class timeproApi {
-        private apiBaseUri: string = "https://{0}.sswtimepro.com/api/";
+        private apiBaseUri: string = "https://{0}.sswtimeprolocal.com/api/";
 
         static $inject = ['$http', '$q'];
         constructor(private $http: angular.IHttpService, private $q: angular.IQService) {

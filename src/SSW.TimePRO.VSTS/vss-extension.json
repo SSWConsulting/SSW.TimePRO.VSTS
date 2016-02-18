@@ -3,9 +3,8 @@
   "id": "sswtimepro",
   "version": "0.3.1",
   "name": "SSW TimePRO",
-  "baseUri": "https://timepro-vsts.azurewebsites.net/",
-  "publisher": "sswtv",
-  "public": true,
+  "baseUri": "https://localhost:44387/",
+  "publisher": "bencull",
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"
