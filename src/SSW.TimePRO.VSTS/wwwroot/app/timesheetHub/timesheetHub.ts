@@ -42,6 +42,7 @@ module TimesheetHub {
         private error: IError;
         private currentUserId: string;
         private projectId: string;
+        private projectName: string;
         private vstsProjectId: string;
         private repositories: any[];
 
@@ -120,15 +121,17 @@ module TimesheetHub {
                     this.extensionData.getValue(TimesheetHubController.API_KEY),
                     this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID, { scopeType: "User" }),
                     this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME),
-                    this.extensionData.getValue("ProjectID-" + this.vstsProjectId, { scopeType: "User" })
+                    this.extensionData.getValue("ProjectID-" + this.vstsProjectId, { scopeType: "User" }),
+                    this.extensionData.getValue("ProjectName-" + this.vstsProjectId, { scopeType: "User" })
                 ])
-                .spread((apiKey, userId, accountName, projectId) => {
+                .spread((apiKey, userId, accountName, projectId, projectName) => {
 
                     this.$scope.$apply(() => {
                         this.apiKey = apiKey;
                         this.currentUserId = userId;
                         this.accountName = accountName;
                         this.projectId = projectId;
+                        this.projectName = projectName;
 
                         if (!apiKey) {
                             this.configured = false;

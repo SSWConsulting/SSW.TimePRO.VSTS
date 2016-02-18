@@ -1,12 +1,12 @@
 ﻿<div>
-    <div ng-if="vm.existingTimesheet" class="sweet-icon success pull-right" ng-class="{'animate': vm.existingTimesheet}">
+    <div ng-cloak ng-if="vm.existingTimesheet" class="sweet-icon success pull-right" ng-class="{'animate': vm.existingTimesheet}">
         <span class="line tip" ng-class="{'animateSuccessTip': vm.existingTimesheet}"></span>
         <span class="line long" ng-class="{'animateSuccessLong': vm.existingTimesheet}"></span>
         <div class="placeholder"></div>
         <div class="fix"></div>
     </div>
 
-    <div ng-if="!vm.existingTimesheet" class="sweet-icon error pull-right">
+    <div ng-cloak ng-if="!vm.existingTimesheet" class="sweet-icon error pull-right">
         <span class="x-mark">
             <span class="line left"></span>
             <span class="line right"></span>

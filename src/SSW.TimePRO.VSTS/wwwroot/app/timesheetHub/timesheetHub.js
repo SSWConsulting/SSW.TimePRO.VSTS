@@ -78,14 +78,16 @@ var TimesheetHub;
                 this.extensionData.getValue(TimesheetHubController.API_KEY),
                 this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID, { scopeType: "User" }),
                 this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME),
-                this.extensionData.getValue("ProjectID-" + this.vstsProjectId, { scopeType: "User" })
+                this.extensionData.getValue("ProjectID-" + this.vstsProjectId, { scopeType: "User" }),
+                this.extensionData.getValue("ProjectName-" + this.vstsProjectId, { scopeType: "User" })
             ])
-                .spread(function (apiKey, userId, accountName, projectId) {
+                .spread(function (apiKey, userId, accountName, projectId, projectName) {
                 _this.$scope.$apply(function () {
                     _this.apiKey = apiKey;
                     _this.currentUserId = userId;
                     _this.accountName = accountName;
                     _this.projectId = projectId;
+                    _this.projectName = projectName;
                     if (!apiKey) {
                         _this.configured = false;
                     }
