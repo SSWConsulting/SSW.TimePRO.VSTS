@@ -75,6 +75,7 @@
         private vstsProjectId: string;
         private gitRepositories: any[];
         private q: any;
+        private notesVisible: boolean;
 
         constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private timeproApi: TimeproApi.timeproApi) {
             this.init();
@@ -327,6 +328,10 @@
                     item.workItems[i].active = item.active;
                 }
             }
+        }
+
+        showNotes(value) {
+            this.notesVisible = value;
         }
     }
 
