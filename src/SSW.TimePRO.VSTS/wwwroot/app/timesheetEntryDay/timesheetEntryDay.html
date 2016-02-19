@@ -1,21 +1,36 @@
 ﻿<div>
-    <h3>{{vm.timesheetDate | date: 'EEE, d MMMM yyyy'}}</h3>
+    <div ng-cloak ng-if="vm.existingTimesheet" class="sweet-icon success pull-right" ng-class="{'animate': vm.existingTimesheet}">
+        <span class="line tip" ng-class="{'animateSuccessTip': vm.existingTimesheet}"></span>
+        <span class="line long" ng-class="{'animateSuccessLong': vm.existingTimesheet}"></span>
+        <div class="placeholder"></div>
+        <div class="fix"></div>
+    </div>
+
+    <div ng-cloak ng-if="!vm.existingTimesheet" class="sweet-icon error pull-right">
+        <span class="x-mark">
+            <span class="line left"></span>
+            <span class="line right"></span>
+        </span>
+    </div>
+
+    <h3 class="text-left">{{vm.timesheetDate | date: 'EEE'}}</h3>
+    <h4 class="text-left">{{vm.timesheetDate | date: 'd MMM yyyy'}}</h4>
 
     <!--<p class="text-danger" ng-if="!vm.existingTimesheet">No timesheet for today</p>
     <p class="text-success" ng-if="vm.existingTimesheet">Timesheet complete</p>-->
 
     <div class="form-group">
         <label>Hours</label>
-        <input type="text" ng-model="vm.timesheetForm.Hours" class="form-control" />
+        <input type="text" ng-model="vm.timesheetForm.Hours" class="form-control hours-textbox"/>
     </div>
 
     <div class="form-group">
-        <label>Extra Notes:</label>
-        <textarea rows="4" ng-model="vm.timesheetForm.Notes" class="form-control"></textarea>
+        <label><a href="" ng-click="vm.showNotes(!vm.notesVisible)">Extra Notes <i class="fa fa-angle-down" ng-class="{'fa-angle-down': !vm.notesVisible, 'fa-angle-up': vm.notesVisible}"></i></a></label>
+        <textarea ng-if="vm.notesVisible" rows="4" ng-model="vm.timesheetForm.Notes" class="form-control"></textarea>
     </div>
 
     <div class="form-group">
-        <button ng-if="!vm.existingTimesheet" type="button" class="btn btn-primary btn-block" loading-button="vm.loading.save" ng-click="vm.saveTimesheet()">Add Timesheet</button>        
+        <button ng-if="!vm.existingTimesheet" type="button" class="btn btn-danger btn-block" loading-button="vm.loading.save" ng-click="vm.saveTimesheet()">Add Timesheet</button>
         <button ng-if="vm.existingTimesheet" type="button" class="btn btn-success btn-block" loading-button="vm.loading.save" ng-click="vm.saveTimesheet()">Update Timesheet</button>
     </div>
 

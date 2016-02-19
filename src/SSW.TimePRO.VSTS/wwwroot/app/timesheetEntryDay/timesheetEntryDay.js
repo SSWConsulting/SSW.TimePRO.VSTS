@@ -261,6 +261,9 @@ var TimesheetEntryDay;
                 }
             }
         };
+        TimesheetEntryDayController.prototype.showNotes = function (value) {
+            this.notesVisible = value;
+        };
         return TimesheetEntryDayController;
     })();
     angular.module('TimesheetEntryDay', [])

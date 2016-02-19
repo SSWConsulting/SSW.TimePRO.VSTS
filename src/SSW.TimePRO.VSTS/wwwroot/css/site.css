@@ -12,12 +12,24 @@ button.btn {
 .full-height {
   height: 100%;
 }
+.hours-textbox {
+  width: 60px;
+  text-align: center;
+}
 .hub-content-custom {
   padding-top: 50px;
 }
 .hub-content-custom-scrolling {
   overflow: auto;
   overflow-x: hidden;
+}
+.logo-wrapper {
+  position: absolute;
+  top: 20px;
+  right: 40px;
+}
+.logo-wrapper p {
+  clear: both;
 }
 .form-control-vsts {
   width: 100%;
