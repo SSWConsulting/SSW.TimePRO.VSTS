@@ -2,12 +2,13 @@
 var TimesheetHub;
 (function (TimesheetHub) {
     var TimesheetHubController = (function () {
-        function TimesheetHubController($http, $scope, Base64, timeproApi) {
+        function TimesheetHubController($http, $scope, Base64, timeproApi, hotkeys) {
             var _this = this;
             this.$http = $http;
             this.$scope = $scope;
             this.Base64 = Base64;
             this.timeproApi = timeproApi;
+            this.hotkeys = hotkeys;
             this.currentDays = [];
             this.loginForm = {};
             this.loading = {
@@ -34,6 +35,13 @@ var TimesheetHub;
                     });
                 });
             });
+            hotkeys.bindTo($scope).add({
+                combo: 'a',
+                description: "Show all commits, instead of just your own",
+                callback: function () {
+                    _this.showAllCommits = !_this.showAllCommits;
+                }
+            });
         }
         Object.defineProperty(TimesheetHubController, "API_KEY", {
             get: function () { return "TimePROApiKey"; },
@@ -47,6 +55,11 @@ var TimesheetHub;
         });
         Object.defineProperty(TimesheetHubController, "CURRENT_USER_ID", {
             get: function () { return "TimePROCurrentUserId"; },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(TimesheetHubController, "CURRENT_USER_EMAIL", {
+            get: function () { return "TimePROCurrentUserEmail"; },
             enumerable: true,
             configurable: true
         });
@@ -77,14 +90,16 @@ var TimesheetHub;
             this.Q.all([
                 this.extensionData.getValue(TimesheetHubController.API_KEY),
                 this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID, { scopeType: "User" }),
+                this.extensionData.getValue(TimesheetHubController.CURRENT_USER_EMAIL, { scopeType: "User" }),
                 this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME),
                 this.extensionData.getValue("ProjectID-" + this.vstsProjectId, { scopeType: "User" }),
                 this.extensionData.getValue("ProjectName-" + this.vstsProjectId, { scopeType: "User" })
             ])
-                .spread(function (apiKey, userId, accountName, projectId, projectName) {
+                .spread(function (apiKey, userId, userEmail, accountName, projectId, projectName) {
                 _this.$scope.$apply(function () {
                     _this.apiKey = apiKey;
                     _this.currentUserId = userId;
+                    _this.currentUserEmail = userEmail;
                     _this.accountName = accountName;
                     _this.projectId = projectId;
                     _this.projectName = projectName;
@@ -140,6 +155,7 @@ var TimesheetHub;
             this.timeproApi.authorize(this.accountName, this.loginForm.username, this.loginForm.password)
                 .then(function (data) {
                 _this.extensionData.setValue(TimesheetHubController.CURRENT_USER_ID, data.EmpID, { scopeType: "User" });
+                _this.extensionData.setValue(TimesheetHubController.CURRENT_USER_EMAIL, _this.loginForm.username, { scopeType: "User" });
                 _this.currentUserId = data.EmpID;
                 _this.loading.login = false;
                 _this.loggedIn = true;
@@ -158,9 +174,9 @@ var TimesheetHub;
                 _this.init(); // Init assumes no scope
             });
         };
-        TimesheetHubController.$inject = ['$http', '$scope', 'Base64', 'timeproApi'];
+        TimesheetHubController.$inject = ['$http', '$scope', 'Base64', 'timeproApi', 'hotkeys'];
         return TimesheetHubController;
     })();
-    angular.module('TimesheetHub', [])
+    angular.module('TimesheetHub', ['cfp.hotkeys'])
         .controller('TimesheetHubController', TimesheetHubController);
 })(TimesheetHub || (TimesheetHub = {}));

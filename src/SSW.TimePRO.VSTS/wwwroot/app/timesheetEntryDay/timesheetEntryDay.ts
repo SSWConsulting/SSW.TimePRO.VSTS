@@ -17,6 +17,8 @@
         createdDate: Date;
         workItems: IWorkItem[];
         type: string;
+        isMine: boolean;
+        author: string;
     }
 
     interface IWorkItem {
@@ -30,6 +32,7 @@
         public scope = {
             timesheetDate: "=",
             currentUserId: "=",
+            currentUserEmail: "=",
             projectId: "=",
             accountName: "=",
             isGitRepository: "=",
@@ -38,6 +41,7 @@
             vstsProjectId: "=",
             gitRepositories: "=",
             q: "=",
+            showAllCommits: "="
         };
         public templateUrl = "/app/timesheetEntryDay/timesheetEntryDay.html";
         public controllerAs = "vm";
@@ -65,6 +69,7 @@
         private timesheetDate: Date;
         private existingTimesheet: Timesheet;
         private currentUserId: string;
+        private currentUserEmail: string;
         private projectId: string;
         private accountName: string;
         private allCheckins: ICheckin[] = [];
@@ -76,6 +81,7 @@
         private gitRepositories: any[];
         private q: any;
         private notesVisible: boolean;
+        private showAllCommits: boolean;
 
         constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private timeproApi: TimeproApi.timeproApi) {
             this.init();
@@ -245,7 +251,9 @@
                             changesetId: commit.commitId,
                             comment: commit.comment + (commit.commentTruncated ? "..." : ""),
                             createdDate: commit.author.date,
-                            active: true
+                            active: true,
+                            isMine: commit.author.email == this.currentUserEmail,
+                            author: commit.author.name
                         };
 
                         // Remove commits that starts with "merge"
@@ -275,7 +283,7 @@
             var associations: TimesheetAssociation[] = [];
             
             for (i = 0; i < this.allCheckins.length; i++) {
-                if (this.allCheckins[i].active) {
+                if (this.allCheckins[i].active && (this.allCheckins[i].isMine || this.allCheckins[i].type == 'pullrequest' || this.showAllCommits)) {
                     var typeId = 0;
                     if (this.allCheckins[i].type == "changeset") {
                         typeId = 1;
@@ -313,8 +321,8 @@
             this.timeproApi.saveTimesheet(this.accountName, postData)
                 .then(data => {
                     this.existingTimesheet = data;
-                    this.loading.save = false;
-
+                    this.existingTimesheet.TimesheetID = (<any>data).TimeID;
+                    this.loading.save = false;                
                 }, error => {
                     this.loading.save = false;
                 });

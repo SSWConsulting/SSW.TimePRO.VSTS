@@ -49,7 +49,7 @@
         <div ng-if="!vm.loading.checkins">
             <p ng-if="!vm.allCheckins || vm.allCheckins.length == 0">No checkins found for today</p>
             <div class="list-group" ng-if="vm.allCheckins">
-                <a class="list-group-item" ng-repeat-start="item in vm.allCheckins | orderBy: 'createdDate'" ng-class="{'active': item.active2}" ng-click="vm.toggleActive(item)">
+                <a class="list-group-item" ng-repeat-start="item in vm.allCheckins | orderBy: 'createdDate'" ng-if="item.isMine || item.type == 'pullrequest' || vm.showAllCommits" ng-class="{'active': item.active2}" ng-click="vm.toggleActive(item)">
                     <div ng-if="item.type == 'pullrequest'" class="list-group-category list-group-category-pull-request">Pull Request</div>
                     <div ng-if="item.type == 'commit'" class="list-group-category list-group-category-commit">Commit</div>
                     <div ng-if="item.type == 'changeset'" class="list-group-category list-group-category-changeset">Changeset</div>
@@ -63,6 +63,7 @@
                         <p class="list-group-item-text">
                             <strong>{{item.createdDate | date: 'h:mm a'}}</strong> - {{item.createdDate | date: 'EEE, d MMMM yyyy'}}
                         </p>
+                        <p ng-if="vm.showAllCommits">{{item.author}}</p>
                     </div>
                 </a>
                 <a class="list-group-item" ng-repeat-end ng-if="item.type == 'changeset'" ng-repeat="workItem in item.workItems" ng-click="vm.toggleActive(workItem)" style="margin-left: 20px;">

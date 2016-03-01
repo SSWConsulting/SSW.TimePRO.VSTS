@@ -6,6 +6,7 @@ var TimesheetEntryDay;
             this.scope = {
                 timesheetDate: "=",
                 currentUserId: "=",
+                currentUserEmail: "=",
                 projectId: "=",
                 accountName: "=",
                 isGitRepository: "=",
@@ -14,6 +15,7 @@ var TimesheetEntryDay;
                 vstsProjectId: "=",
                 gitRepositories: "=",
                 q: "=",
+                showAllCommits: "="
             };
             this.templateUrl = "/app/timesheetEntryDay/timesheetEntryDay.html";
             this.controllerAs = "vm";
@@ -189,7 +191,9 @@ var TimesheetEntryDay;
                             changesetId: commit.commitId,
                             comment: commit.comment + (commit.commentTruncated ? "..." : ""),
                             createdDate: commit.author.date,
-                            active: true
+                            active: true,
+                            isMine: commit.author.email == _this.currentUserEmail,
+                            author: commit.author.name
                         };
                         // Remove commits that starts with "merge"
                         if (checkin.comment.toLowerCase().lastIndexOf("merge", 0) !== 0) {
@@ -213,7 +217,7 @@ var TimesheetEntryDay;
             postData.Notes += "\n\n~~~\n";
             var associations = [];
             for (i = 0; i < this.allCheckins.length; i++) {
-                if (this.allCheckins[i].active) {
+                if (this.allCheckins[i].active && (this.allCheckins[i].isMine || this.allCheckins[i].type == 'pullrequest' || this.showAllCommits)) {
                     var typeId = 0;
                     if (this.allCheckins[i].type == "changeset") {
                         typeId = 1;
@@ -248,6 +252,7 @@ var TimesheetEntryDay;
             this.timeproApi.saveTimesheet(this.accountName, postData)
                 .then(function (data) {
                 _this.existingTimesheet = data;
+                _this.existingTimesheet.TimesheetID = data.TimeID;
                 _this.loading.save = false;
             }, function (error) {
                 _this.loading.save = false;

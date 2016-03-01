@@ -32,6 +32,7 @@ module TimesheetHub {
         public static get API_KEY(): string { return "TimePROApiKey"; }
         public static get ACCOUNT_NAME(): string { return "TimePROAccountName"; }
         public static get CURRENT_USER_ID(): string { return "TimePROCurrentUserId"; }
+        public static get CURRENT_USER_EMAIL(): string { return "TimePROCurrentUserEmail"; }
 
         private configured: boolean;
         private apiKey: string;
@@ -41,6 +42,7 @@ module TimesheetHub {
         private loading: ILoading;
         private error: IError;
         private currentUserId: string;
+        private currentUserEmail: string;
         private projectId: string;
         private projectName: string;
         private vstsProjectId: string;
@@ -56,13 +58,14 @@ module TimesheetHub {
         private VssSplitter: any;
 
         private isGitRepository: boolean;
+        private showAllCommits: boolean;
 
         private splitter: any;
 
         private currentDays: Date[] = [];
 
-        static $inject = ['$http', '$scope', 'Base64', 'timeproApi'];
-        constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private Base64: any, private timeproApi: TimeproApi.timeproApi) {
+        static $inject = ['$http', '$scope', 'Base64', 'timeproApi', 'hotkeys'];
+        constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private Base64: any, private timeproApi: TimeproApi.timeproApi, private hotkeys) {
             this.loginForm = <ILoginForm>{};
             this.loading = <ILoading>{
                 page: true
@@ -92,6 +95,14 @@ module TimesheetHub {
                         });
                 });
             });
+
+            hotkeys.bindTo($scope).add({
+                combo: 'a',
+                description: "Show all commits, instead of just your own",
+                callback: () => {
+                    this.showAllCommits = !this.showAllCommits;
+                }
+            });
         }
 
         init() {
@@ -120,15 +131,17 @@ module TimesheetHub {
             this.Q.all([
                     this.extensionData.getValue(TimesheetHubController.API_KEY),
                     this.extensionData.getValue(TimesheetHubController.CURRENT_USER_ID, { scopeType: "User" }),
+                    this.extensionData.getValue(TimesheetHubController.CURRENT_USER_EMAIL, { scopeType: "User" }),
                     this.extensionData.getValue(TimesheetHubController.ACCOUNT_NAME),
                     this.extensionData.getValue("ProjectID-" + this.vstsProjectId, { scopeType: "User" }),
                     this.extensionData.getValue("ProjectName-" + this.vstsProjectId, { scopeType: "User" })
                 ])
-                .spread((apiKey, userId, accountName, projectId, projectName) => {
+                .spread((apiKey, userId, userEmail, accountName, projectId, projectName) => {
 
                     this.$scope.$apply(() => {
                         this.apiKey = apiKey;
                         this.currentUserId = userId;
+                        this.currentUserEmail = userEmail;
                         this.accountName = accountName;
                         this.projectId = projectId;
                         this.projectName = projectName;
@@ -194,6 +207,7 @@ module TimesheetHub {
             this.timeproApi.authorize(this.accountName, this.loginForm.username, this.loginForm.password)
                 .then(data => {
                     this.extensionData.setValue(TimesheetHubController.CURRENT_USER_ID, data.EmpID, { scopeType: "User" });
+                    this.extensionData.setValue(TimesheetHubController.CURRENT_USER_EMAIL, this.loginForm.username, { scopeType: "User" });
                     this.currentUserId = data.EmpID;
                     this.loading.login = false;
                     this.loggedIn = true;
@@ -215,6 +229,6 @@ module TimesheetHub {
         }
     }
 
-    angular.module('TimesheetHub', [])
+    angular.module('TimesheetHub', ['cfp.hotkeys'])
         .controller('TimesheetHubController', TimesheetHubController);
 }

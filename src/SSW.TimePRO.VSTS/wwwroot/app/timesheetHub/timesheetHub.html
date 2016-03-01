@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/lib/Font-Awesome/css/font-awesome.min.css" />
     <link rel="stylesheet" href="/css/site.min.css"/>
     <link rel="stylesheet" href="/css/sweet-alert.min.css"/>
+    <link rel="stylesheet" href="/lib/angular-hotkeys/build/hotkeys.min.css" />
 
     <script type="text/javascript">
         var appInsights = window.appInsights || function (config) {
@@ -176,11 +177,11 @@
                                 <div class="col-sm-6 col-md-4 col-lg-3">
                                     <div class="form-group">
                                         <label>Username</label>
-                                        <input type="text" ng-model="vm.loginForm.username" class="form-control"/>
+                                        <input type="text" ng-model="vm.loginForm.username" class="form-control" ng-keyup="$event.keyCode == 13 && vm.login()"/>
                                     </div>
                                     <div class="form-group">
                                         <label>Password</label>
-                                        <input type="password" ng-model="vm.loginForm.password" class="form-control"/>
+                                        <input type="password" ng-model="vm.loginForm.password" class="form-control" ng-keyup="$event.keyCode == 13 && vm.login()"/>
                                     </div>
                                     <div class="form-group">
                                         <button type="button" class="btn btn-primary btn-block" ng-click="vm.login()" loading-button="vm.loading.login">Login</button>
@@ -212,6 +213,7 @@
                                 <timesheet-entry-day
                                     timesheet-date="day"
                                     current-user-id="vm.currentUserId"
+                                    current-user-email="vm.currentUserEmail"
                                     project-id="vm.projectId"
                                     account-name="vm.accountName"
                                     is-git-repository="vm.isGitRepository"
@@ -219,7 +221,8 @@
                                     tfvc-rest-client="vm.tfvcRestClient"
                                     vsts-project-id="vm.webContext.project.id"
                                     git-repositories="vm.repositories"
-                                    q="vm.Q"></timesheet-entry-day>
+                                    q="vm.Q"
+                                    show-all-commits="vm.showAllCommits"></timesheet-entry-day>
                             </div>
                         </div>
                     </div>
@@ -235,6 +238,7 @@
     <script src="/lib/bootstrap/dist/js/bootstrap.js"></script>
     <script src="/lib/spin.js/spin.js"></script>
     <script src="/lib/ladda/dist/ladda.min.js"></script>
+    <script src="/lib/angular-hotkeys/build/hotkeys.min.js"></script>
     <!-- endbower -->
     <script src="/lib/ladda/dist/ladda.jquery.min.js"></script>
     <script src="/lib/moment/moment.js"></script>
