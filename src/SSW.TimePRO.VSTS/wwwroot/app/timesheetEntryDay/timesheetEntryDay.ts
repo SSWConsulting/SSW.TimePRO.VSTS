@@ -39,6 +39,7 @@
             gitRestClient: "=",,
             tfvcRestClient: "=",
             vstsProjectId: "=",
+            vstsUserId: '=',
             gitRepositories: "=",
             q: "=",
             showAllCommits: "="
@@ -78,6 +79,7 @@
         private gitRestClient: any;
         private tfvcRestClient: any;
         private vstsProjectId: string;
+        private vstsUserId: string;
         private gitRepositories: any[];
         private q: any;
         private notesVisible: boolean;
@@ -193,7 +195,15 @@
                             var w = 0;
                             for (w = 0; w < values.length; w++) {
                                 data[w].type = "changeset";
-                                data[w].workItems = values[w];
+                                data[w].isMine = data[w].author.id == this.vstsUserId;
+                                data[w].author = data[w].author.displayName;
+                                data[w].active = true;
+
+                                data[w].workItems = [];
+                                _(values[w]).forEach(workitem => {
+                                    workitem.active = true;
+                                    data[w].workItems.push(workitem);
+                                });
                             }
                             this.allCheckins = data;
                             this.updateActiveCheckins();

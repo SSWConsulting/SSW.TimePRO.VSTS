@@ -43,6 +43,7 @@ module TimesheetHub {
         private error: IError;
         private currentUserId: string;
         private currentUserEmail: string;
+        private currentUserVstsId: string;
         private projectId: string;
         private projectName: string;
         private vstsProjectId: string;
@@ -112,6 +113,7 @@ module TimesheetHub {
                 this.loading.page = true;
                 this.webContext = VSS.getWebContext();
                 this.vstsProjectId = this.webContext.project.id;
+                this.currentUserVstsId = this.webContext.user.id;
                 console.log(this.webContext);
                 this.tfsCoreRestClient.getProject(this.vstsProjectId, true, false).then((data) => {
                     console.log(data);

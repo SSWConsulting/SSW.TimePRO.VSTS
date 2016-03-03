@@ -13,6 +13,7 @@ var TimesheetEntryDay;
                 gitRestClient: "=",
                 tfvcRestClient: "=",
                 vstsProjectId: "=",
+                vstsUserId: '=',
                 gitRepositories: "=",
                 q: "=",
                 showAllCommits: "="
@@ -137,7 +138,14 @@ var TimesheetEntryDay;
                         var w = 0;
                         for (w = 0; w < values.length; w++) {
                             data[w].type = "changeset";
-                            data[w].workItems = values[w];
+                            data[w].isMine = data[w].author.id == _this.vstsUserId;
+                            data[w].author = data[w].author.displayName;
+                            data[w].active = true;
+                            data[w].workItems = [];
+                            _(values[w]).forEach(function (workitem) {
+                                workitem.active = true;
+                                data[w].workItems.push(workitem);
+                            });
                         }
                         _this.allCheckins = data;
                         _this.updateActiveCheckins();

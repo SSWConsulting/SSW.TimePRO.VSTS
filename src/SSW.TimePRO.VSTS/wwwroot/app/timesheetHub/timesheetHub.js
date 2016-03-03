@@ -71,6 +71,7 @@ var TimesheetHub;
                 _this.loading.page = true;
                 _this.webContext = VSS.getWebContext();
                 _this.vstsProjectId = _this.webContext.project.id;
+                _this.currentUserVstsId = _this.webContext.user.id;
                 console.log(_this.webContext);
                 _this.tfsCoreRestClient.getProject(_this.vstsProjectId, true, false).then(function (data) {
                     console.log(data);
