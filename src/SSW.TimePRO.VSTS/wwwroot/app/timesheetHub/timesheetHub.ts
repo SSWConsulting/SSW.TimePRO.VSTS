@@ -28,6 +28,13 @@ module TimesheetHub {
         login: boolean;
     }
 
+    interface IWeek {
+        start: Date;
+        days: string;
+        hours: number;
+        offset: number;
+    }
+
     class TimesheetHubController {
         public static get API_KEY(): string { return "TimePROApiKey"; }
         public static get ACCOUNT_NAME(): string { return "TimePROAccountName"; }
@@ -64,6 +71,9 @@ module TimesheetHub {
         private splitter: any;
 
         private currentDays: Date[] = [];
+        private currentWeeks: IWeek[] = [];
+        private selectedWeekOffset: number = 0;
+        private currentWeekSelectorStartOffset: number = 0; 
 
         static $inject = ['$http', '$scope', 'Base64', 'timeproApi', 'hotkeys'];
         constructor(private $http: angular.IHttpService, private $scope: angular.IScope, private Base64: any, private timeproApi: TimeproApi.timeproApi, private hotkeys) {
@@ -104,6 +114,8 @@ module TimesheetHub {
                     this.showAllCommits = !this.showAllCommits;
                 }
             });
+
+            this.changeWeeks(0);
         }
 
         init() {
@@ -185,10 +197,31 @@ module TimesheetHub {
             this.splitter.collapse();
         }
 
-        changeDay(days) {
-            var currentDate = this.currentDays[0] || moment().toDate();
+        changeWeeks(weekOffset) {
+            this.currentWeekSelectorStartOffset += weekOffset;
 
-            var monday = moment(currentDate).startOf("week").add(1, "day").add(days, "week");
+            this.currentWeeks = [];
+            var monday = moment().startOf("week").add(1, "day").add(this.currentWeekSelectorStartOffset, 'week');
+
+            for (let i = 0; i < 20; i++) {
+                var start = monday.clone().add(i - 10, "week");
+                var friday = start.clone().add(4, "day");
+
+                var week = {
+                    start: start.toDate(),
+                    days: start.date() + " - " + friday.date(),
+                    hours: i,
+                    offset: (this.currentWeekSelectorStartOffset + i) - 10
+                };
+                this.currentWeeks.push(week);
+            }
+        }
+
+        changeDay(weekOffset) {
+            //var currentDate = this.currentDays[0] || moment().toDate();
+            this.selectedWeekOffset = weekOffset;
+
+            var monday = moment().startOf("week").add(1, "day").add(weekOffset, "week");
             this.currentDays = [
                 monday.toDate(),
                 monday.clone().add(1, "day").toDate(),

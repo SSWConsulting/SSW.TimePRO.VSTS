@@ -1,11 +1,11 @@
 ﻿{
   "manifestVersion": 1,
   "id": "sswtimepro",
-  "version": "0.4.0",
-  "name": "SSW TimePRO",
-  "baseUri": "https://timepro-vsts.azurewebsites.net/",
-  "publisher": "sswtv",
-  "public": true,
+  "version": "0.3.2",
+  "name": "SSW TimePRO (Dev)",
+  "baseUri": "https://localhost:44387/",
+  "publisher": "bencull",
+  "public": false,
   "targets": [
     {
       "id": "Microsoft.VisualStudio.Services"
@@ -63,7 +63,7 @@
         "ms.vss-web.project-hub-groups-collection"
       ],
       "properties": {
-        "name": "TimePRO",
+        "name": "TimePRO (Dev)",
         "order": 100
       }
     },
@@ -87,7 +87,7 @@
         "ms.vss-web.collection-admin-hub-group"
       ],
       "properties": {
-        "name": "SSW TimePRO",
+        "name": "SSW TimePRO (Dev)",
         "order": 30,
         "uri": "app/adminCollection/adminCollection.html"
       }

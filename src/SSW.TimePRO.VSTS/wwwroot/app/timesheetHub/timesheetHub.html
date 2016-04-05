@@ -130,10 +130,10 @@
                     <span>Timesheets - {{vm.projectName}}</span>
                 </div>
                 <div class="logo-wrapper">
-                    <a href="https://www.ssw.com.au" target="_blank">
-                        <img src="/images/ssw-logo.png" height="50" class="pull-right" />
+                    <a href="https://www.ssw.com.au" target="_blank" class="pull-right">
+                        <img src="/images/ssw-logo.png" height="30" />
                     </a>
-                    <p class="text-right"><a href="https://rules.ssw.com.au/rules-to-better-timesheets" target="_blank">Rules to Better Timesheets</a></p>
+                    <p class="pull-right"><a href="https://rules.ssw.com.au/rules-to-better-timesheets" target="_blank">Rules to Better Timesheets</a></p>
                 </div>
                 <div class="hub-content-custom full-height hub-content-custom-scrolling">
                     <div class="row" ng-if="!vm.loading.page && !vm.configured">
@@ -192,38 +192,53 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="row" ng-if="vm.loggedIn" ng-cloak>
-                            <div class="col-sm-6 col-md-4 col-lg-3">
-                                <div class="btn-group btn-group-justified" role="group" aria-label="...">
-                                    <a class="btn btn-default" ng-click="vm.changeDay(-1)"><i class="fa fa-chevron-left"></i></a>
-                                    <a class="btn btn-default" ng-click="vm.changeDay(1)"><i class="fa fa-chevron-right"></i></a>
+                        <div ng-if="vm.loggedIn">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="week-selector">
+                                        <ul>
+                                            <li ng-click="vm.changeWeeks(-1)">
+                                                <i class="fa fa-chevron-left"></i>
+                                            </li>
+                                            <li ng-repeat="week in vm.currentWeeks" ng-click="vm.changeDay(week.offset)" ng-class="{'active': week.offset == vm.selectedWeekOffset}">
+                                                <div class="days">{{week.days}}</div>
+                                                <div class="month">{{week.start | date: 'MMM'}}</div>
+                                                <div class="hours">{{week.hours}} hr</div>
+                                            </li>
+                                            <li ng-click="vm.changeWeeks(1)">
+                                                <i class="fa fa-chevron-right"></i>
+                                            </li>
+                                        </ul>
+                                    </div>                                    
                                 </div>
-                                <label>Currently Logged In As:</label>
-                                <span>
-                                    <strong>{{vm.currentUserId}}</strong>
-                                </span>
-                                <p class="pull-right">
-                                    <a href="#" class="" ng-click="vm.disconnect()" loading-button="vm.loading.disconnect">Disconnect</a>
-                                </p>
                             </div>
-                        </div>
-                        <div class="" ng-if="vm.loggedIn" ng-cloak>
-                            <div class="col-sm-12 col-md-5ths" ng-repeat="day in vm.currentDays">
-                                <timesheet-entry-day
-                                    timesheet-date="day"
-                                    current-user-id="vm.currentUserId"
-                                    current-user-email="vm.currentUserEmail"
-                                    project-id="vm.projectId"
-                                    account-name="vm.accountName"
-                                    is-git-repository="vm.isGitRepository"
-                                    git-rest-client="vm.gitRestClient"
-                                    tfvc-rest-client="vm.tfvcRestClient"
-                                    vsts-project-id="vm.webContext.project.id"
-                                    vsts-user-id="vm.currentUserVstsId"
-                                    git-repositories="vm.repositories"
-                                    q="vm.Q"
-                                    show-all-commits="vm.showAllCommits"></timesheet-entry-day>
+                            <div class="row" ng-cloak>
+                                <div class="col-sm-6 col-md-4 col-lg-3">
+                                    <label>Currently Logged In As:</label>
+                                    <span>
+                                        <strong>{{vm.currentUserId}}</strong>
+                                    </span>
+                                    <span>
+                                        <a href="#" class="" ng-click="vm.disconnect()" loading-button="vm.loading.disconnect">Disconnect</a>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="" ng-cloak>
+                                <div class="col-sm-12 col-md-5ths" ng-repeat="day in vm.currentDays">
+                                    <timesheet-entry-day timesheet-date="day"
+                                                         current-user-id="vm.currentUserId"
+                                                         current-user-email="vm.currentUserEmail"
+                                                         project-id="vm.projectId"
+                                                         account-name="vm.accountName"
+                                                         is-git-repository="vm.isGitRepository"
+                                                         git-rest-client="vm.gitRestClient"
+                                                         tfvc-rest-client="vm.tfvcRestClient"
+                                                         vsts-project-id="vm.webContext.project.id"
+                                                         vsts-user-id="vm.currentUserVstsId"
+                                                         git-repositories="vm.repositories"
+                                                         q="vm.Q"
+                                                         show-all-commits="vm.showAllCommits"></timesheet-entry-day>
+                                </div>
                             </div>
                         </div>
                     </div>

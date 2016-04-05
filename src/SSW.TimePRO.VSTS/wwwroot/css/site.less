@@ -28,15 +28,20 @@ button.btn {
     overflow: auto;
     overflow-x:hidden;
 }
+.rightPane > .container-fluid {
+    padding-right:0px;
+}
 
 .logo-wrapper {
     position: absolute;
-    top: 20px;
+    top: 10px;
     right: 40px;
 
     p {
-        clear:both;
+        line-height: 28px;
+        margin-right: 5px;
     }
+
 }
 
 .form-control-vsts {
@@ -76,6 +81,51 @@ button.btn {
     }
 }
 
+.week-selector {
+    margin: 0 auto;
+
+    ul {
+        padding: 0;
+        margin: 0;
+        list-style-type: none;
+
+        li {
+            margin: 0;
+            padding: 6px;
+            float: left;
+            border: 1px solid rgba(104, 33, 122, 0.15);
+            width: 70px;
+            height: 70px;
+            text-align: center;
+            color: rgba(51, 51, 51, 0.5);
+
+            &:hover {
+                background-color: #eee;
+                cursor: pointer;
+            }
+
+            &.active {
+                background-color: rgba(104, 33, 122, 0.65);
+                color: #fff;
+            }
+
+            i {
+                line-height:56px;
+            }
+
+            .days {
+            }
+
+            .month {
+                font-weight: bold;
+            }
+
+            .hours {
+                font-size: 1.2em;
+            }
+        }
+    }
+}
 
 .col-xs-5ths,
 .col-sm-5ths,

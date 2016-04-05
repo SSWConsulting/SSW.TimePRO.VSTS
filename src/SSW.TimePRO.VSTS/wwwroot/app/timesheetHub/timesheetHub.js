@@ -10,6 +10,9 @@ var TimesheetHub;
             this.timeproApi = timeproApi;
             this.hotkeys = hotkeys;
             this.currentDays = [];
+            this.currentWeeks = [];
+            this.selectedWeekOffset = 0;
+            this.currentWeekSelectorStartOffset = 0;
             this.loginForm = {};
             this.loading = {
                 page: true
@@ -42,6 +45,7 @@ var TimesheetHub;
                     _this.showAllCommits = !_this.showAllCommits;
                 }
             });
+            this.changeWeeks(0);
         }
         Object.defineProperty(TimesheetHubController, "API_KEY", {
             get: function () { return "TimePROApiKey"; },
@@ -135,9 +139,26 @@ var TimesheetHub;
         TimesheetHubController.prototype.collapse = function () {
             this.splitter.collapse();
         };
-        TimesheetHubController.prototype.changeDay = function (days) {
-            var currentDate = this.currentDays[0] || moment().toDate();
-            var monday = moment(currentDate).startOf("week").add(1, "day").add(days, "week");
+        TimesheetHubController.prototype.changeWeeks = function (weekOffset) {
+            this.currentWeekSelectorStartOffset += weekOffset;
+            this.currentWeeks = [];
+            var monday = moment().startOf("week").add(1, "day").add(this.currentWeekSelectorStartOffset, 'week');
+            for (var i = 0; i < 20; i++) {
+                var start = monday.clone().add(i - 10, "week");
+                var friday = start.clone().add(4, "day");
+                var week = {
+                    start: start.toDate(),
+                    days: start.date() + " - " + friday.date(),
+                    hours: i,
+                    offset: (this.currentWeekSelectorStartOffset + i) - 10
+                };
+                this.currentWeeks.push(week);
+            }
+        };
+        TimesheetHubController.prototype.changeDay = function (weekOffset) {
+            //var currentDate = this.currentDays[0] || moment().toDate();
+            this.selectedWeekOffset = weekOffset;
+            var monday = moment().startOf("week").add(1, "day").add(weekOffset, "week");
             this.currentDays = [
                 monday.toDate(),
                 monday.clone().add(1, "day").toDate(),
