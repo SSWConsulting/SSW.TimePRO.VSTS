@@ -198,7 +198,7 @@ var TimesheetHub;
         };
         TimesheetHubController.$inject = ['$http', '$scope', 'Base64', 'timeproApi', 'hotkeys'];
         return TimesheetHubController;
-    })();
+    }());
     angular.module('TimesheetHub', ['cfp.hotkeys'])
         .controller('TimesheetHubController', TimesheetHubController);
 })(TimesheetHub || (TimesheetHub = {}));

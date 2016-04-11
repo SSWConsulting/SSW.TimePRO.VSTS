@@ -67,7 +67,7 @@ var TimeproApi;
         };
         timeproApi.$inject = ['$http', '$q'];
         return timeproApi;
-    })();
+    }());
     TimeproApi.timeproApi = timeproApi;
     angular.module("TimeproApi", [])
         .service("timeproApi", timeproApi);

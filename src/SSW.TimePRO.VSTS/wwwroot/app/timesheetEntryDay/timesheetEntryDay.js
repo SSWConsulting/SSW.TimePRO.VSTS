@@ -34,7 +34,7 @@ var TimesheetEntryDay;
             return directive;
         };
         return TimesheetEntryDay;
-    })();
+    }());
     var TimesheetEntryDayController = (function () {
         function TimesheetEntryDayController($http, $scope, timeproApi) {
             this.$http = $http;
@@ -262,6 +262,7 @@ var TimesheetEntryDay;
                 _this.existingTimesheet = data;
                 _this.existingTimesheet.TimesheetID = data.TimeID;
                 _this.loading.save = false;
+                appInsights.trackEvent("SaveTimesheetSuccess", { Account: _this.accountName, Username: _this.currentUserEmail });
             }, function (error) {
                 _this.loading.save = false;
             });
@@ -278,7 +279,7 @@ var TimesheetEntryDay;
             this.notesVisible = value;
         };
         return TimesheetEntryDayController;
-    })();
+    }());
     angular.module('TimesheetEntryDay', [])
         .directive("timesheetEntryDay", TimesheetEntryDay.Factory());
 })(TimesheetEntryDay || (TimesheetEntryDay = {}));

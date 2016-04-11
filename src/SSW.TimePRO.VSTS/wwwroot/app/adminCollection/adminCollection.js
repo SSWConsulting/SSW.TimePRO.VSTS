@@ -66,12 +66,14 @@ var AdminCollection;
             this.error.login = false;
             this.timeproApi.authorize(this.loginForm.accountName, this.loginForm.username, this.loginForm.password)
                 .then(function (data) {
+                appInsights.trackEvent("AdminLoginSuccess", { Account: _this.loginForm.accountName, Username: _this.loginForm.username });
                 _this.extensionData.setValue(AdminCollectionController.API_KEY, data.CurrentKey);
                 _this.extensionData.setValue(AdminCollectionController.ACCOUNT_NAME, data.timeProUrlID);
                 _this.accountName = data.timeProUrlID;
                 _this.loading.login = false;
                 _this.loggedIn = true;
             }, function (error) {
+                appInsights.trackEvent("AdminLoginFailed", { Account: _this.loginForm.accountName, Username: _this.loginForm.username });
                 _this.loading.login = false;
                 _this.error.login = true;
             });
@@ -88,7 +90,7 @@ var AdminCollection;
         };
         AdminCollectionController.$inject = ['$http', '$scope', 'timeproApi'];
         return AdminCollectionController;
-    })();
+    }());
     angular.module('adminCollection', [])
         .controller('AdminCollectionController', AdminCollectionController);
 })(AdminCollection || (AdminCollection = {}));

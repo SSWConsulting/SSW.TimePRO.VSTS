@@ -3,6 +3,7 @@
     import SaveTimesheetForm = TimeproApi.ISaveTimesheetForm;
     import Timesheet = TimeproApi.ITimesheet;
     declare var _: any;
+    declare var appInsights: any;
 
     interface ILoading {
         timesheet: boolean;
@@ -332,7 +333,9 @@
                 .then(data => {
                     this.existingTimesheet = data;
                     this.existingTimesheet.TimesheetID = (<any>data).TimeID;
-                    this.loading.save = false;                
+                    this.loading.save = false;
+
+                    appInsights.trackEvent("SaveTimesheetSuccess", { Account: this.accountName, Username: this.currentUserEmail });
                 }, error => {
                     this.loading.save = false;
                 });

@@ -1,6 +1,8 @@
 ﻿/// <reference path="../../sdk/scripts/vss.d.ts" />
 module AdminCollection {
 
+    declare var appInsights: any;
+
     interface ILoginForm {
         accountName: string;
         username: string;
@@ -83,12 +85,14 @@ module AdminCollection {
 
             this.timeproApi.authorize(this.loginForm.accountName, this.loginForm.username, this.loginForm.password)
                 .then(data => {
+                    appInsights.trackEvent("AdminLoginSuccess", { Account: this.loginForm.accountName, Username: this.loginForm.username });
                     this.extensionData.setValue(AdminCollectionController.API_KEY, data.CurrentKey);
                     this.extensionData.setValue(AdminCollectionController.ACCOUNT_NAME, data.timeProUrlID);
                     this.accountName = data.timeProUrlID;
                     this.loading.login = false;
                     this.loggedIn = true;
                 }, error => {
+                    appInsights.trackEvent("AdminLoginFailed", { Account: this.loginForm.accountName, Username: this.loginForm.username });
                     this.loading.login = false;
                     this.error.login = true;
                 });

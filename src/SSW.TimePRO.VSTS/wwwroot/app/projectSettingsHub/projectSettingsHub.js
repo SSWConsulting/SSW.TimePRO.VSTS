@@ -150,7 +150,7 @@ var ProjectSettingsHub;
         };
         ProjectSettingsHubController.$inject = ['$http', '$scope', 'Base64', '$timeout', 'timeproApi'];
         return ProjectSettingsHubController;
-    })();
+    }());
     angular.module('ProjectSettingsHub', [])
         .controller('ProjectSettingsHubController', ProjectSettingsHubController);
 })(ProjectSettingsHub || (ProjectSettingsHub = {}));
