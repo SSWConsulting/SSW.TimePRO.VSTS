@@ -3,9 +3,10 @@
   "version": "1.0.0-*",
 
   "dependencies": {
-    "Microsoft.AspNet.IISPlatformHandler": "1.0.0-beta8",
-    "Microsoft.AspNet.Server.Kestrel": "1.0.0-beta8",
-    "Microsoft.AspNet.StaticFiles": "1.0.0-beta8"
+    "Microsoft.AspNet.IISPlatformHandler": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Server.Kestrel": "1.0.0-rc1-final",
+    "Microsoft.AspNet.StaticFiles": "1.0.0-rc1-final",
+    "Microsoft.AspNet.Cors": "6.0.0-rc1-final"
   },
 
   "commands": {
@@ -13,8 +14,7 @@
   },
 
   "frameworks": {
-    "dnx451": { },
-    "dnxcore50": { }
+    "dnx451": { }
   },
 
   "exclude": [
